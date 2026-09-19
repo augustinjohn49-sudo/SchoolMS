@@ -6,6 +6,7 @@ import healthRoutes from "./routes/healthRoutes.js";
 import schoolRoutes from "./routes/schoolRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import schoolAdminRoutes from "./routes/schoolAdminRoutes.js";
+import academicYearRoutes from "./routes/academicYearRoutes.js";
 
 const app = express();
 
@@ -27,6 +28,8 @@ app.use("/api/health", healthRoutes); // Health routes
 app.use("/api/schools", schoolRoutes); // School routes
 app.use("/api/auth", authRoutes); // Auth routes
 app.use("/api/school-admins", schoolAdminRoutes); // School Admin routes
+app.use("/api/academic-years", academicYearRoutes); // Academic Year routes
+
 // Start server
 async function startServer() {
   try {
