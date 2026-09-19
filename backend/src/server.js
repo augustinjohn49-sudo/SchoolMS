@@ -5,6 +5,7 @@ import express from "express";
 import healthRoutes from "./routes/healthRoutes.js";
 import schoolRoutes from "./routes/schoolRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import schoolAdminRoutes from "./routes/schoolAdminRoutes.js";
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.get("/", (req, res) => {
 app.use("/api/health", healthRoutes); // Health routes
 app.use("/api/schools", schoolRoutes); // School routes
 app.use("/api/auth", authRoutes); // Auth routes
-
+app.use("/api/school-admins", schoolAdminRoutes); // School Admin routes
 // Start server
 async function startServer() {
   try {
