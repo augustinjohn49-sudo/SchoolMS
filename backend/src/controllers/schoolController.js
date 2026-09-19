@@ -125,3 +125,57 @@ export async function getSchools(req, res) {
     });
   }
 }
+
+export async function getSchoolById(req, res) {
+  try {
+    const { schoolId } = req.params;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required.",
+      });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        name,
+        code,
+        type,
+        location,
+        email,
+        phone,
+        address,
+        logo,
+        status,
+        "createdAt",
+        "updatedAt"
+      FROM "School"
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [schoolId],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "School not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: result.rows[0],
+    });
+  } catch (error) {
+    console.error("Get school by ID error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve school.",
+    });
+  }
+}
