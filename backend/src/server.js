@@ -1,13 +1,10 @@
-// import dns from "dns";
-
-// dns.setDefaultResultOrder("ipv4first");
-
 import "dotenv/config";
 import express from "express";
 
 // import prisma from "./config/prisma.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import schoolRoutes from "./routes/schoolRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -27,6 +24,7 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/api/health", healthRoutes); // Health routes
 app.use("/api/schools", schoolRoutes); // School routes
+app.use("/api/auth", authRoutes); // Auth routes
 
 // Start server
 async function startServer() {
