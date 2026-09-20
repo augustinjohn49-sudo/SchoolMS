@@ -21,8 +21,11 @@ export function requireSchoolAccess(req, res, next) {
 
   // If a schoolId is supplied in the URL, make sure it matches
   // the school assigned to the authenticated user.
+  // If a schoolId is supplied in the URL, make sure it matches
+  // the school assigned to the authenticated user.
+
   const requestedSchoolId =
-    req.params.schoolId || req.body.schoolId || req.query.schoolId;
+    req.params.schoolId || req.body?.schoolId || req.query.schoolId;
 
   if (requestedSchoolId && requestedSchoolId !== req.user.schoolId) {
     return res.status(403).json({

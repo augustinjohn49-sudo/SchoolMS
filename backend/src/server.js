@@ -8,6 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import schoolAdminRoutes from "./routes/schoolAdminRoutes.js";
 import academicYearRoutes from "./routes/academicYearRoutes.js";
 import termRoutes from "./routes/termRoutes.js";
+import classRoutes from "./routes/classRoutes.js";
 
 const app = express();
 
@@ -31,6 +32,8 @@ app.use("/api/auth", authRoutes); // Auth routes
 app.use("/api/school-admins", schoolAdminRoutes); // School Admin routes
 app.use("/api/academic-years", academicYearRoutes); // Academic Year routes
 app.use("/api/terms", termRoutes); // Term routes
+app.use("/api/classes", classRoutes); // Class routes
+
 // Start server
 async function startServer() {
   try {
