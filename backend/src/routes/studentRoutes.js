@@ -4,6 +4,7 @@ import {
   createStudentController,
   getStudentsController,
   getStudentByIdController,
+  updateStudentController,
 } from "../controllers/studentController.js";
 
 import {
@@ -26,6 +27,13 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getStudentByIdController,
+);
+
+router.patch(
+  "/:studentId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  updateStudentController,
 );
 
 router.post(
