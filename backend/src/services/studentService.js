@@ -257,3 +257,50 @@ export async function updateStudent({
 
   return result.rows[0];
 }
+
+export async function deleteStudent({ schoolId, studentId }) {
+  const existingResult = await pool.query(
+    `SELECT
+      id,
+      "schoolId"
+    FROM "Student"
+    WHERE id = $1
+    LIMIT 1`,
+    [studentId],
+  );
+
+  if (existingResult.rows.length === 0) {
+    const error = new Error("Student not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (existingResult.rows[0].schoolId !== schoolId) {
+    const error = new Error("You do not have access to this student.");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const result = await pool.query(
+    `DELETE FROM "Student"
+     WHERE id = $1
+     RETURNING
+       id,
+       "schoolId",
+       "admissionNumber",
+       "firstName",
+       "middleName",
+       "lastName",
+       "dateOfBirth",
+       gender,
+       phone,
+       email,
+       address,
+       status,
+       "createdAt",
+       "updatedAt"`,
+    [studentId],
+  );
+
+  return result.rows[0];
+}
