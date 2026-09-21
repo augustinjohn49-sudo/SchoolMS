@@ -136,3 +136,43 @@ export async function getStudentsBySchool({ schoolId }) {
 
   return result.rows;
 }
+
+export async function getStudentById({ schoolId, studentId }) {
+  const result = await pool.query(
+    `SELECT
+      id,
+      "schoolId",
+      "admissionNumber",
+      "firstName",
+      "middleName",
+      "lastName",
+      "dateOfBirth",
+      gender,
+      phone,
+      email,
+      address,
+      status,
+      "createdAt",
+      "updatedAt"
+    FROM "Student"
+    WHERE id = $1
+    LIMIT 1`,
+    [studentId],
+  );
+
+  if (result.rows.length === 0) {
+    const error = new Error("Student not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const student = result.rows[0];
+
+  if (student.schoolId !== schoolId) {
+    const error = new Error("You do not have access to this student.");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  return student;
+}

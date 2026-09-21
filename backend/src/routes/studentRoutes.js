@@ -3,6 +3,7 @@ import express from "express";
 import {
   createStudentController,
   getStudentsController,
+  getStudentByIdController,
 } from "../controllers/studentController.js";
 
 import {
@@ -18,6 +19,13 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getStudentsController,
+);
+
+router.get(
+  "/:studentId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getStudentByIdController,
 );
 
 router.post(
