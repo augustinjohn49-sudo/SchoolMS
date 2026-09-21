@@ -46,6 +46,14 @@ router.patch(
   updateTermController,
 );
 
+router.delete(
+  "/:termId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  requireSchoolAccess,
+  deleteTermController,
+);
+
 router.post(
   "/",
   authenticateToken,
