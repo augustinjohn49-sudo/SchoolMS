@@ -10,6 +10,8 @@ import academicYearRoutes from "./routes/academicYearRoutes.js";
 import termRoutes from "./routes/termRoutes.js";
 import classRoutes from "./routes/classRoutes.js";
 import streamRoutes from "./routes/streamRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+import studentEnrollmentRoutes from "./routes/studentEnrollmentRoutes.js";
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.use("/api/academic-years", academicYearRoutes); // Academic Year routes
 app.use("/api/terms", termRoutes); // Term routes
 app.use("/api/classes", classRoutes); // Class routes
 app.use("/api/streams", streamRoutes); // Stream routes
+app.use("/api/students", studentRoutes); // Student routes
+app.use("/api/student-enrollments", studentEnrollmentRoutes);
 
 // Start server
 async function startServer() {

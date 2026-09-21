@@ -38,3 +38,56 @@ export function authenticateToken(req, res, next) {
     });
   }
 }
+
+export function authorizeRoles(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to perform this action.",
+      });
+    }
+
+    next();
+  };
+}
+
+export function requireSchoolAccess(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: "Authentication required.",
+    });
+  }
+
+  // SUPER_ADMIN has system-wide access.
+  if (req.user.role === "SUPER_ADMIN") {
+    return next();
+  }
+
+  if (!req.user.schoolId) {
+    return res.status(403).json({
+      success: false,
+      message: "Your account is not associated with a school.",
+    });
+  }
+
+  const requestedSchoolId =
+    req.params.schoolId || req.body?.schoolId || req.query.schoolId;
+
+  if (requestedSchoolId && requestedSchoolId !== req.user.schoolId) {
+    return res.status(403).json({
+      success: false,
+      message: "You do not have access to this school.",
+    });
+  }
+
+  next();
+}

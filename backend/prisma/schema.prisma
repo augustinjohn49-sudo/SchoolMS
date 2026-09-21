@@ -27,6 +27,7 @@ model School {
   updatedAt DateTime     @updatedAt
 
   users         User[]
+  students      Student[]
   academicYears AcademicYear[]
 }
 
@@ -61,9 +62,59 @@ model AcademicYear {
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   terms  Term[]
   classes Class[]
+  studentEnrollments StudentEnrollment[]
 
   @@unique([schoolId, name])
   @@index([schoolId])
+  @@index([status])
+}
+
+model Student {
+  id             String        @id @default(uuid())
+  schoolId       String
+  admissionNumber String
+  firstName      String
+  middleName     String?
+  lastName       String
+  dateOfBirth    DateTime?
+  gender         StudentGender
+  phone          String?
+  email          String?
+  address        String?
+  status         StudentStatus @default(ACTIVE)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  enrollments StudentEnrollment[]
+
+  @@unique([schoolId, admissionNumber])
+  @@index([schoolId])
+  @@index([status])
+}
+
+model StudentEnrollment {
+  id             String   @id @default(uuid())
+  studentId      String
+  academicYearId String
+  classId        String
+  streamId       String?
+  enrolledAt     DateTime @default(now())
+  status         EnrollmentStatus @default(ACTIVE)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  class        Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  stream       Stream?      @relation(fields: [streamId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, academicYearId])
+  @@index([studentId])
+  @@index([academicYearId])
+  @@index([classId])
+  @@index([streamId])
   @@index([status])
 }
 
@@ -94,6 +145,7 @@ model Class {
 
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   streams      Stream[]
+  studentEnrollments StudentEnrollment[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -107,6 +159,8 @@ model Stream {
   updatedAt DateTime @updatedAt
 
   class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  studentEnrollments StudentEnrollment[]
 
   @@unique([classId, name])
   @@index([classId])
@@ -147,4 +201,25 @@ enum TermStatus {
   ACTIVE
   INACTIVE
   COMPLETED
+}
+
+enum StudentGender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  TRANSFERRED
+  SUSPENDED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  TRANSFERRED
+  WITHDRAWN
 }

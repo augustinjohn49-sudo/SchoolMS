@@ -1,0 +1,112 @@
+import pool from "../config/prisma.js";
+import { randomUUID } from "crypto";
+
+export async function createStudent({
+  schoolId,
+  admissionNumber,
+  firstName,
+  middleName,
+  lastName,
+  dateOfBirth,
+  gender,
+  phone,
+  email,
+  address,
+}) {
+  // Verify that the school exists.
+  const schoolResult = await pool.query(
+    `SELECT id
+     FROM "School"
+     WHERE id = $1
+     LIMIT 1`,
+    [schoolId],
+  );
+
+  if (schoolResult.rows.length === 0) {
+    const error = new Error("School not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Check for duplicate admission number within the same school.
+  const duplicateResult = await pool.query(
+    `SELECT id
+     FROM "Student"
+     WHERE "schoolId" = $1
+       AND "admissionNumber" = $2
+     LIMIT 1`,
+    [schoolId, admissionNumber],
+  );
+
+  if (duplicateResult.rows.length > 0) {
+    const error = new Error(
+      "A student with this admission number already exists in this school.",
+    );
+
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const studentId = randomUUID();
+
+  const result = await pool.query(
+    `INSERT INTO "Student" (
+      id,
+      "schoolId",
+      "admissionNumber",
+      "firstName",
+      "middleName",
+      "lastName",
+      "dateOfBirth",
+      gender,
+      phone,
+      email,
+      address,
+      "updatedAt"
+    )
+    VALUES (
+      $1,
+      $2,
+      $3,
+      $4,
+      $5,
+      $6,
+      $7,
+      $8,
+      $9,
+      $10,
+      $11,
+      NOW()
+    )
+    RETURNING
+      id,
+      "schoolId",
+      "admissionNumber",
+      "firstName",
+      "middleName",
+      "lastName",
+      "dateOfBirth",
+      gender,
+      phone,
+      email,
+      address,
+      status,
+      "createdAt",
+      "updatedAt"`,
+    [
+      studentId,
+      schoolId,
+      admissionNumber,
+      firstName,
+      middleName || null,
+      lastName,
+      dateOfBirth || null,
+      gender,
+      phone || null,
+      email || null,
+      address || null,
+    ],
+  );
+
+  return result.rows[0];
+}
