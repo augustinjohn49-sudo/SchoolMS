@@ -1,4 +1,7 @@
-import { createStudent } from "../services/studentService.js";
+import {
+  createStudent,
+  getStudentsBySchool,
+} from "../services/studentService.js";
 
 export async function createStudentController(req, res) {
   try {
@@ -58,6 +61,35 @@ export async function createStudentController(req, res) {
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.statusCode ? error.message : "Failed to create student.",
+    });
+  }
+}
+
+export async function getStudentsController(req, res) {
+  try {
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const students = await getStudentsBySchool({
+      schoolId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: students,
+    });
+  } catch (error) {
+    console.error("Get students error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve students.",
     });
   }
 }

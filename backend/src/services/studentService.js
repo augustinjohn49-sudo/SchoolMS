@@ -110,3 +110,29 @@ export async function createStudent({
 
   return result.rows[0];
 }
+
+export async function getStudentsBySchool({ schoolId }) {
+  const result = await pool.query(
+    `SELECT
+      id,
+      "schoolId",
+      "admissionNumber",
+      "firstName",
+      "middleName",
+      "lastName",
+      "dateOfBirth",
+      gender,
+      phone,
+      email,
+      address,
+      status,
+      "createdAt",
+      "updatedAt"
+    FROM "Student"
+    WHERE "schoolId" = $1
+    ORDER BY "lastName" ASC, "firstName" ASC`,
+    [schoolId],
+  );
+
+  return result.rows;
+}

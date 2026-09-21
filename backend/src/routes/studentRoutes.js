@@ -1,6 +1,9 @@
 import express from "express";
 
-import { createStudentController } from "../controllers/studentController.js";
+import {
+  createStudentController,
+  getStudentsController,
+} from "../controllers/studentController.js";
 
 import {
   authenticateToken,
@@ -9,6 +12,13 @@ import {
 } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
+
+router.get(
+  "/",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getStudentsController,
+);
 
 router.post(
   "/",
