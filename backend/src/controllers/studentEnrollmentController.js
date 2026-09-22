@@ -2,6 +2,7 @@ import {
   createStudentEnrollment,
   getStudentEnrollmentsBySchool,
   getStudentEnrollmentById,
+  updateStudentEnrollment,
 } from "../services/studentEnrollmentService.js";
 
 export async function createStudentEnrollmentController(req, res) {
@@ -107,6 +108,60 @@ export async function getStudentEnrollmentByIdController(req, res) {
       message: error.statusCode
         ? error.message
         : "Failed to retrieve student enrollment.",
+    });
+  }
+}
+
+export async function updateStudentEnrollmentController(req, res) {
+  try {
+    const { enrollmentId } = req.params;
+
+    const { academicYearId, classId, streamId, status } = req.body;
+
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const hasUpdate =
+      academicYearId !== undefined ||
+      classId !== undefined ||
+      streamId !== undefined ||
+      status !== undefined;
+
+    if (!hasUpdate) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one enrollment field is required for update.",
+      });
+    }
+
+    const enrollment = await updateStudentEnrollment({
+      schoolId,
+      enrollmentId,
+      academicYearId,
+      classId,
+      streamId,
+      status,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Student enrollment updated successfully.",
+      data: enrollment,
+    });
+  } catch (error) {
+    console.error("Update student enrollment error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to update student enrollment.",
     });
   }
 }

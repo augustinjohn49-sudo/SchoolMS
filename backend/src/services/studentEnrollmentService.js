@@ -287,3 +287,216 @@ export async function getStudentEnrollmentById({ schoolId, enrollmentId }) {
 
   return result.rows[0];
 }
+
+export async function updateStudentEnrollment({
+  schoolId,
+  enrollmentId,
+  academicYearId,
+  classId,
+  streamId,
+  status,
+}) {
+  // First, verify that the enrollment exists
+  // and belongs to the authenticated user's school.
+  const existingResult = await pool.query(
+    `SELECT
+      se.id,
+      se."studentId",
+      se."academicYearId",
+      se."classId",
+      se."streamId",
+      se.status,
+      s."schoolId"
+    FROM "StudentEnrollment" se
+    INNER JOIN "Student" s
+      ON s.id = se."studentId"
+    WHERE se.id = $1
+    LIMIT 1`,
+    [enrollmentId],
+  );
+
+  if (existingResult.rows.length === 0) {
+    const error = new Error("Student enrollment not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const existingEnrollment = existingResult.rows[0];
+
+  if (existingEnrollment.schoolId !== schoolId) {
+    const error = new Error(
+      "You do not have access to this student enrollment.",
+    );
+    error.statusCode = 403;
+    throw error;
+  }
+
+  // If academic year is being changed, verify it belongs
+  // to the authenticated user's school.
+  if (academicYearId !== undefined) {
+    const academicYearResult = await pool.query(
+      `SELECT
+        id,
+        "schoolId"
+      FROM "AcademicYear"
+      WHERE id = $1
+      LIMIT 1`,
+      [academicYearId],
+    );
+
+    if (academicYearResult.rows.length === 0) {
+      const error = new Error("Academic year not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (academicYearResult.rows[0].schoolId !== schoolId) {
+      const error = new Error("You do not have access to this academic year.");
+      error.statusCode = 403;
+      throw error;
+    }
+  }
+
+  // If class is being changed, verify that it belongs
+  // to the selected academic year and school.
+  if (classId !== undefined) {
+    const selectedAcademicYearId =
+      academicYearId ?? existingEnrollment.academicYearId;
+
+    const classResult = await pool.query(
+      `SELECT
+        c.id,
+        ay."schoolId",
+        c."academicYearId"
+      FROM "Class" c
+      INNER JOIN "AcademicYear" ay
+        ON ay.id = c."academicYearId"
+      WHERE c.id = $1
+      LIMIT 1`,
+      [classId],
+    );
+
+    if (classResult.rows.length === 0) {
+      const error = new Error("Class not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (classResult.rows[0].schoolId !== schoolId) {
+      const error = new Error("You do not have access to this class.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (classResult.rows[0].academicYearId !== selectedAcademicYearId) {
+      const error = new Error(
+        "The selected class does not belong to the selected academic year.",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  // If stream is being changed, verify that it belongs
+  // to the selected class.
+  if (streamId !== undefined && streamId !== null) {
+    const selectedClassId = classId ?? existingEnrollment.classId;
+
+    const streamResult = await pool.query(
+      `SELECT
+        st.id,
+        c.id AS "classId",
+        ay."schoolId"
+      FROM "Stream" st
+      INNER JOIN "Class" c
+        ON c.id = st."classId"
+      INNER JOIN "AcademicYear" ay
+        ON ay.id = c."academicYearId"
+      WHERE st.id = $1
+      LIMIT 1`,
+      [streamId],
+    );
+
+    if (streamResult.rows.length === 0) {
+      const error = new Error("Stream not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (streamResult.rows[0].schoolId !== schoolId) {
+      const error = new Error("You do not have access to this stream.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (streamResult.rows[0].classId !== selectedClassId) {
+      const error = new Error(
+        "The selected stream does not belong to the selected class.",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  const updatedAcademicYearId =
+    academicYearId ?? existingEnrollment.academicYearId;
+
+  const updatedClassId = classId ?? existingEnrollment.classId;
+
+  const updatedStreamId =
+    streamId !== undefined ? streamId : existingEnrollment.streamId;
+
+  const updatedStatus = status ?? existingEnrollment.status;
+
+  // Prevent the same student from being enrolled twice
+  // in the same academic year.
+  if (updatedAcademicYearId !== existingEnrollment.academicYearId) {
+    const duplicateResult = await pool.query(
+      `SELECT id
+       FROM "StudentEnrollment"
+       WHERE "studentId" = $1
+         AND "academicYearId" = $2
+         AND id <> $3
+       LIMIT 1`,
+      [existingEnrollment.studentId, updatedAcademicYearId, enrollmentId],
+    );
+
+    if (duplicateResult.rows.length > 0) {
+      const error = new Error(
+        "This student is already enrolled in the selected academic year.",
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+  }
+
+  const result = await pool.query(
+    `UPDATE "StudentEnrollment"
+     SET
+       "academicYearId" = $1,
+       "classId" = $2,
+       "streamId" = $3,
+       status = $4,
+       "updatedAt" = NOW()
+     WHERE id = $5
+     RETURNING
+       id,
+       "studentId",
+       "academicYearId",
+       "classId",
+       "streamId",
+       "enrolledAt",
+       status,
+       "createdAt",
+       "updatedAt"`,
+    [
+      updatedAcademicYearId,
+      updatedClassId,
+      updatedStreamId,
+      updatedStatus,
+      enrollmentId,
+    ],
+  );
+
+  return result.rows[0];
+}

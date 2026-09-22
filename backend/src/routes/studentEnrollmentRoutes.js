@@ -4,6 +4,7 @@ import {
   createStudentEnrollmentController,
   getStudentEnrollmentsController,
   getStudentEnrollmentByIdController,
+  updateStudentEnrollmentController,
 } from "../controllers/studentEnrollmentController.js";
 
 import {
@@ -25,6 +26,13 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getStudentEnrollmentByIdController,
+);
+
+router.patch(
+  "/:enrollmentId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  updateStudentEnrollmentController,
 );
 
 router.post(
