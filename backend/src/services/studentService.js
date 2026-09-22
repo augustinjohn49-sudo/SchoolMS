@@ -117,7 +117,19 @@ export async function getStudentsBySchool({
   status,
   page = 1,
   limit = 20,
+  sortBy = "lastName",
+  sortOrder = "asc",
 }) {
+  const allowedSortFields = {
+    lastName: 's."lastName"',
+    firstName: 's."firstName"',
+    admissionNumber: 's."admissionNumber"',
+    createdAt: 's."createdAt"',
+  };
+
+  const sortColumn = allowedSortFields[sortBy] || allowedSortFields.lastName;
+  const sortDirection = sortOrder.toLowerCase() === "desc" ? "DESC" : "ASC";
+
   const countResult = await pool.query(
     `SELECT COUNT(*)::int AS total
    FROM "Student" s
@@ -167,9 +179,7 @@ export async function getStudentsBySchool({
         $3::"StudentStatus" IS NULL
         OR s.status = $3::"StudentStatus"
       )
-    ORDER BY
-      s."lastName" ASC,
-      s."firstName" ASC
+    ORDER BY ${sortColumn} ${sortDirection}
     LIMIT $4
     OFFSET $5`,
     [schoolId, search ?? null, status ?? null, limit, (page - 1) * limit],

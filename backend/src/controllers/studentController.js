@@ -80,7 +80,8 @@ export async function getStudentsController(req, res) {
     }
 
     // const { search } = req.query;
-    const { search, status, page, limit } = req.query;
+    // const { search, status, page, limit } = req.query;
+    const { search, status, page, limit, sortBy, sortOrder } = req.query;
 
     const parsedPage = page ? Number(page) : 1;
     const parsedLimit = limit ? Number(limit) : 20;
@@ -122,8 +123,10 @@ export async function getStudentsController(req, res) {
       schoolId,
       search,
       status,
-      page: parsedPage,
-      limit: parsedLimit,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+      sortBy: sortBy || "lastName",
+      sortOrder: sortOrder || "asc",
     });
 
     return res.status(200).json({
