@@ -79,11 +79,28 @@ export async function getStudentsController(req, res) {
       });
     }
 
-    const { search } = req.query;
+    // const { search } = req.query;
+    const { search, status } = req.query;
+
+    const allowedStatuses = [
+      "ACTIVE",
+      "INACTIVE",
+      "GRADUATED",
+      "TRANSFERRED",
+      "SUSPENDED",
+    ];
+
+    if (status && !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid student status. Allowed values are: ${allowedStatuses.join(", ")}.`,
+      });
+    }
 
     const students = await getStudentsBySchool({
       schoolId,
       search,
+      status,
     });
 
     return res.status(200).json({
