@@ -500,3 +500,50 @@ export async function updateStudentEnrollment({
 
   return result.rows[0];
 }
+
+export async function deleteStudentEnrollment({ schoolId, enrollmentId }) {
+  const existingResult = await pool.query(
+    `SELECT
+      se.id,
+      se."studentId",
+      s."schoolId"
+    FROM "StudentEnrollment" se
+    INNER JOIN "Student" s
+      ON s.id = se."studentId"
+    WHERE se.id = $1
+    LIMIT 1`,
+    [enrollmentId],
+  );
+
+  if (existingResult.rows.length === 0) {
+    const error = new Error("Student enrollment not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (existingResult.rows[0].schoolId !== schoolId) {
+    const error = new Error(
+      "You do not have access to this student enrollment.",
+    );
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const result = await pool.query(
+    `DELETE FROM "StudentEnrollment"
+     WHERE id = $1
+     RETURNING
+       id,
+       "studentId",
+       "academicYearId",
+       "classId",
+       "streamId",
+       "enrolledAt",
+       status,
+       "createdAt",
+       "updatedAt"`,
+    [enrollmentId],
+  );
+
+  return result.rows[0];
+}

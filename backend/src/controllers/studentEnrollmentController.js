@@ -3,6 +3,7 @@ import {
   getStudentEnrollmentsBySchool,
   getStudentEnrollmentById,
   updateStudentEnrollment,
+  deleteStudentEnrollment,
 } from "../services/studentEnrollmentService.js";
 
 export async function createStudentEnrollmentController(req, res) {
@@ -162,6 +163,41 @@ export async function updateStudentEnrollmentController(req, res) {
       message: error.statusCode
         ? error.message
         : "Failed to update student enrollment.",
+    });
+  }
+}
+
+export async function deleteStudentEnrollmentController(req, res) {
+  try {
+    const { enrollmentId } = req.params;
+
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const enrollment = await deleteStudentEnrollment({
+      schoolId,
+      enrollmentId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Student enrollment deleted successfully.",
+      data: enrollment,
+    });
+  } catch (error) {
+    console.error("Delete student enrollment error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to delete student enrollment.",
     });
   }
 }
