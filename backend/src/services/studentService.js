@@ -111,7 +111,31 @@ export async function createStudent({
   return result.rows[0];
 }
 
-export async function getStudentsBySchool({ schoolId, search, status }) {
+export async function getStudentsBySchool({
+  schoolId,
+  search,
+  status,
+  page = 1,
+  limit = 20,
+}) {
+  const countResult = await pool.query(
+    `SELECT COUNT(*)::int AS total
+   FROM "Student" s
+   WHERE s."schoolId" = $1
+     AND (
+       $2::text IS NULL
+       OR s."admissionNumber" ILIKE '%' || $2 || '%'
+       OR s."firstName" ILIKE '%' || $2 || '%'
+       OR s."middleName" ILIKE '%' || $2 || '%'
+       OR s."lastName" ILIKE '%' || $2 || '%'
+     )
+     AND (
+       $3::"StudentStatus" IS NULL
+       OR s.status = $3::"StudentStatus"
+     )`,
+    [schoolId, search ?? null, status ?? null],
+  );
+
   const result = await pool.query(
     `SELECT
       id,
@@ -143,11 +167,26 @@ export async function getStudentsBySchool({ schoolId, search, status }) {
         $3::"StudentStatus" IS NULL
         OR s.status = $3::"StudentStatus"
       )
-    ORDER BY "lastName" ASC, "firstName" ASC`,
-    [schoolId, search ?? null, status ?? null],
+    ORDER BY
+      s."lastName" ASC,
+      s."firstName" ASC
+    LIMIT $4
+    OFFSET $5`,
+    [schoolId, search ?? null, status ?? null, limit, (page - 1) * limit],
   );
 
-  return result.rows;
+  const total = countResult.rows[0].total;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: result.rows,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
 }
 
 export async function getStudentById({ schoolId, studentId }) {
