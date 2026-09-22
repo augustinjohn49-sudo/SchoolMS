@@ -6,6 +6,7 @@ import {
   getStudentByIdController,
   updateStudentController,
   deleteStudentController,
+  bulkUpdateStatus,
 } from "../controllers/studentController.js";
 
 import {
@@ -21,6 +22,13 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getStudentsController,
+);
+
+router.patch(
+  "/bulk-status",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  bulkUpdateStatus,
 );
 
 router.get(

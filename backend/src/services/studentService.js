@@ -366,3 +366,25 @@ export async function deleteStudent({ schoolId, studentId }) {
 
   return result.rows[0];
 }
+
+export async function bulkUpdateStudentStatus({
+  schoolId,
+  studentIds,
+  status,
+}) {
+  const result = await pool.query(
+    `UPDATE "Student"
+   SET
+     status = $1::"StudentStatus",
+     "updatedAt" = NOW()
+   WHERE "schoolId" = $2
+     AND id = ANY($3::text[])
+   RETURNING id`,
+    [status, schoolId, studentIds],
+  );
+
+  return {
+    updatedCount: result.rowCount,
+    updatedStudentIds: result.rows.map((student) => student.id),
+  };
+}

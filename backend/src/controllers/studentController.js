@@ -4,6 +4,7 @@ import {
   getStudentById,
   updateStudent,
   deleteStudent,
+  bulkUpdateStudentStatus,
 } from "../services/studentService.js";
 
 export async function createStudentController(req, res) {
@@ -279,6 +280,53 @@ export async function deleteStudentController(req, res) {
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.statusCode ? error.message : "Failed to delete student.",
+    });
+  }
+}
+
+export async function bulkUpdateStatus(req, res) {
+  try {
+    const { studentIds, status } = req.body;
+
+    if (!Array.isArray(studentIds) || studentIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "studentIds must be a non-empty array.",
+      });
+    }
+
+    const allowedStatuses = [
+      "ACTIVE",
+      "INACTIVE",
+      "GRADUATED",
+      "TRANSFERRED",
+      "SUSPENDED",
+    ];
+
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid student status. Allowed values are: ${allowedStatuses.join(", ")}.`,
+      });
+    }
+
+    const result = await bulkUpdateStudentStatus({
+      schoolId: req.user.schoolId,
+      studentIds,
+      status,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `${result.updatedCount} student(s) updated successfully.`,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Bulk update student status error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update student statuses.",
     });
   }
 }
