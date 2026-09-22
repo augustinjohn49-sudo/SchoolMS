@@ -111,7 +111,7 @@ export async function createStudent({
   return result.rows[0];
 }
 
-export async function getStudentsBySchool({ schoolId }) {
+export async function getStudentsBySchool({ schoolId, search }) {
   const result = await pool.query(
     `SELECT
       id,
@@ -128,10 +128,19 @@ export async function getStudentsBySchool({ schoolId }) {
       status,
       "createdAt",
       "updatedAt"
-    FROM "Student"
-    WHERE "schoolId" = $1
+    
+      FROM "Student" s
+
+    WHERE s."schoolId" = $1
+      AND (
+        $2::text IS NULL
+        OR s."admissionNumber" ILIKE '%' || $2 || '%'
+        OR s."firstName" ILIKE '%' || $2 || '%'
+        OR s."middleName" ILIKE '%' || $2 || '%'
+        OR s."lastName" ILIKE '%' || $2 || '%'
+      )
     ORDER BY "lastName" ASC, "firstName" ASC`,
-    [schoolId],
+    [schoolId, search ?? null],
   );
 
   return result.rows;

@@ -79,8 +79,11 @@ export async function getStudentsController(req, res) {
       });
     }
 
+    const { search } = req.query;
+
     const students = await getStudentsBySchool({
       schoolId,
+      search,
     });
 
     return res.status(200).json({
@@ -90,9 +93,11 @@ export async function getStudentsController(req, res) {
   } catch (error) {
     console.error("Get students error:", error);
 
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to retrieve students.",
+      message: error.statusCode
+        ? error.message
+        : "Failed to retrieve students.",
     });
   }
 }
