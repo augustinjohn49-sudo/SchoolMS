@@ -181,3 +181,54 @@ export async function createStudentEnrollment({
 
   return result.rows[0];
 }
+
+export async function getStudentEnrollmentsBySchool({ schoolId }) {
+  const result = await pool.query(
+    `SELECT
+      se.id,
+      se."studentId",
+      se."academicYearId",
+      se."classId",
+      se."streamId",
+      se."enrolledAt",
+      se.status,
+      se."createdAt",
+      se."updatedAt",
+
+      s."admissionNumber",
+      s."firstName",
+      s."middleName",
+      s."lastName",
+
+      ay.name AS "academicYearName",
+
+      c.name AS "className",
+      c.level AS "classLevel",
+
+      st.name AS "streamName"
+
+    FROM "StudentEnrollment" se
+
+    INNER JOIN "Student" s
+      ON s.id = se."studentId"
+
+    INNER JOIN "AcademicYear" ay
+      ON ay.id = se."academicYearId"
+
+    INNER JOIN "Class" c
+      ON c.id = se."classId"
+
+    LEFT JOIN "Stream" st
+      ON st.id = se."streamId"
+
+    WHERE s."schoolId" = $1
+
+    ORDER BY
+      s."lastName" ASC,
+      s."firstName" ASC,
+      ay."startDate" DESC`,
+    [schoolId],
+  );
+
+  return result.rows;
+}
