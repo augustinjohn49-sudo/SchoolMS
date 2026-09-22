@@ -61,8 +61,14 @@ export async function getStudentEnrollmentsController(req, res) {
       });
     }
 
+    const { academicYearId, classId, streamId, status } = req.query;
+
     const enrollments = await getStudentEnrollmentsBySchool({
       schoolId,
+      academicYearId,
+      classId,
+      streamId,
+      status,
     });
 
     return res.status(200).json({
@@ -72,9 +78,11 @@ export async function getStudentEnrollmentsController(req, res) {
   } catch (error) {
     console.error("Get student enrollments error:", error);
 
-    return res.status(500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
-      message: "Failed to retrieve student enrollments.",
+      message: error.statusCode
+        ? error.message
+        : "Failed to retrieve student enrollments.",
     });
   }
 }

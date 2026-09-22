@@ -182,7 +182,13 @@ export async function createStudentEnrollment({
   return result.rows[0];
 }
 
-export async function getStudentEnrollmentsBySchool({ schoolId }) {
+export async function getStudentEnrollmentsBySchool({
+  schoolId,
+  academicYearId,
+  classId,
+  streamId,
+  status,
+}) {
   const result = await pool.query(
     `SELECT
       se.id,
@@ -222,12 +228,22 @@ export async function getStudentEnrollmentsBySchool({ schoolId }) {
       ON st.id = se."streamId"
 
     WHERE s."schoolId" = $1
+      AND ($2::text IS NULL OR se."academicYearId" = $2)
+      AND ($3::text IS NULL OR se."classId" = $3)
+      AND ($4::text IS NULL OR se."streamId" = $4)
+      AND ($5::"EnrollmentStatus" IS NULL OR se.status = $5::"EnrollmentStatus")
 
     ORDER BY
       s."lastName" ASC,
       s."firstName" ASC,
       ay."startDate" DESC`,
-    [schoolId],
+    [
+      schoolId,
+      academicYearId ?? null,
+      classId ?? null,
+      streamId ?? null,
+      status ?? null,
+    ],
   );
 
   return result.rows;
