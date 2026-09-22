@@ -232,3 +232,58 @@ export async function getStudentEnrollmentsBySchool({ schoolId }) {
 
   return result.rows;
 }
+
+export async function getStudentEnrollmentById({ schoolId, enrollmentId }) {
+  const result = await pool.query(
+    `SELECT
+      se.id,
+      se."studentId",
+      se."academicYearId",
+      se."classId",
+      se."streamId",
+      se."enrolledAt",
+      se.status,
+      se."createdAt",
+      se."updatedAt",
+
+      s."admissionNumber",
+      s."firstName",
+      s."middleName",
+      s."lastName",
+
+      ay.name AS "academicYearName",
+
+      c.name AS "className",
+      c.level AS "classLevel",
+
+      st.name AS "streamName"
+
+    FROM "StudentEnrollment" se
+
+    INNER JOIN "Student" s
+      ON s.id = se."studentId"
+
+    INNER JOIN "AcademicYear" ay
+      ON ay.id = se."academicYearId"
+
+    INNER JOIN "Class" c
+      ON c.id = se."classId"
+
+    LEFT JOIN "Stream" st
+      ON st.id = se."streamId"
+
+    WHERE se.id = $1
+      AND s."schoolId" = $2
+
+    LIMIT 1`,
+    [enrollmentId, schoolId],
+  );
+
+  if (result.rows.length === 0) {
+    const error = new Error("Student enrollment not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return result.rows[0];
+}

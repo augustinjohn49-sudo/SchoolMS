@@ -1,6 +1,7 @@
 import {
   createStudentEnrollment,
   getStudentEnrollmentsBySchool,
+  getStudentEnrollmentById,
 } from "../services/studentEnrollmentService.js";
 
 export async function createStudentEnrollmentController(req, res) {
@@ -72,6 +73,40 @@ export async function getStudentEnrollmentsController(req, res) {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve student enrollments.",
+    });
+  }
+}
+
+export async function getStudentEnrollmentByIdController(req, res) {
+  try {
+    const { enrollmentId } = req.params;
+
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const enrollment = await getStudentEnrollmentById({
+      schoolId,
+      enrollmentId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: enrollment,
+    });
+  } catch (error) {
+    console.error("Get student enrollment by ID error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to retrieve student enrollment.",
     });
   }
 }
