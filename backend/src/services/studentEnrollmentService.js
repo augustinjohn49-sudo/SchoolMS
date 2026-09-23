@@ -133,7 +133,25 @@ export async function createStudentEnrollment({
     }
   }
 
-  // 5. Prevent duplicate enrollment for the same student and academic year.
+  // 5. Prevent a student from having multiple active enrollments.
+  const activeEnrollmentResult = await pool.query(
+    `SELECT id, "academicYearId", "classId", "streamId"
+   FROM "StudentEnrollment"
+   WHERE "studentId" = $1
+     AND status = 'ACTIVE'
+   LIMIT 1`,
+    [studentId],
+  );
+
+  if (activeEnrollmentResult.rows.length > 0) {
+    const error = new Error(
+      "The student already has an active enrollment. Complete, transfer, or withdraw the current enrollment before creating a new one.",
+    );
+    error.statusCode = 409;
+    throw error;
+  }
+
+  // 6. Prevent duplicate enrollment for the same student and academic year.
   const duplicateResult = await pool.query(
     `SELECT id
      FROM "StudentEnrollment"
@@ -151,7 +169,7 @@ export async function createStudentEnrollment({
     throw error;
   }
 
-  // 6. Create the enrollment.
+  // 7. Create the enrollment.
   const enrollmentId = randomUUID();
 
   const result = await pool.query(
