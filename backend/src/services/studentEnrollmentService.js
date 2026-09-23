@@ -31,10 +31,13 @@ export async function createStudentEnrollment({
 
   // 2. Verify the academic year belongs to this school.
   const academicYearResult = await pool.query(
-    `SELECT id, "schoolId"
-     FROM "AcademicYear"
-     WHERE id = $1
-     LIMIT 1`,
+    `SELECT
+     id,
+     "schoolId",
+     status
+   FROM "AcademicYear"
+   WHERE id = $1
+   LIMIT 1`,
     [academicYearId],
   );
 
@@ -47,6 +50,14 @@ export async function createStudentEnrollment({
   if (academicYearResult.rows[0].schoolId !== schoolId) {
     const error = new Error("You do not have access to this academic year.");
     error.statusCode = 403;
+    throw error;
+  }
+
+  if (academicYearResult.rows[0].status !== "ACTIVE") {
+    const error = new Error(
+      "Students can only be enrolled in an active academic year.",
+    );
+    error.statusCode = 400;
     throw error;
   }
 
