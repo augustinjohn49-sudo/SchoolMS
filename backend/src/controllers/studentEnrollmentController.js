@@ -2,6 +2,8 @@ import {
   createStudentEnrollment,
   getStudentEnrollmentsBySchool,
   getStudentEnrollmentById,
+  getStudentEnrollmentHistory,
+  getCurrentStudentEnrollment,
   updateStudentEnrollment,
   deleteStudentEnrollment,
 } from "../services/studentEnrollmentService.js";
@@ -154,6 +156,39 @@ export async function getStudentEnrollmentByIdController(req, res) {
       message: error.statusCode
         ? error.message
         : "Failed to retrieve student enrollment.",
+    });
+  }
+}
+
+export async function getCurrentStudentEnrollmentController(req, res) {
+  try {
+    const { studentId } = req.params;
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const enrollment = await getCurrentStudentEnrollment({
+      schoolId,
+      studentId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: enrollment,
+    });
+  } catch (error) {
+    console.error("Get current student enrollment error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to retrieve current student enrollment.",
     });
   }
 }

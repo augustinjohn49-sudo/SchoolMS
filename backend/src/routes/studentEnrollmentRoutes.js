@@ -4,6 +4,7 @@ import {
   createStudentEnrollmentController,
   getStudentEnrollmentsController,
   getStudentEnrollmentByIdController,
+  getCurrentStudentEnrollmentController,
   updateStudentEnrollmentController,
   deleteStudentEnrollmentController,
 } from "../controllers/studentEnrollmentController.js";
@@ -20,6 +21,13 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getStudentEnrollmentsController,
+);
+
+router.get(
+  "/student/:studentId/current",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getCurrentStudentEnrollmentController,
 );
 
 router.get(

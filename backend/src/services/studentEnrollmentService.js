@@ -423,6 +423,82 @@ export async function getStudentEnrollmentHistory({ schoolId, studentId }) {
   return result.rows;
 }
 
+export async function getCurrentStudentEnrollment({ schoolId, studentId }) {
+  // 1. Verify the student exists and belongs to this school.
+  const studentResult = await pool.query(
+    `SELECT
+       id,
+       "schoolId"
+     FROM "Student"
+     WHERE id = $1
+     LIMIT 1`,
+    [studentId],
+  );
+
+  if (studentResult.rows.length === 0) {
+    const error = new Error("Student not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (studentResult.rows[0].schoolId !== schoolId) {
+    const error = new Error("You do not have access to this student.");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  // 2. Retrieve the student's current active enrollment.
+  const result = await pool.query(
+    `SELECT
+       se.id,
+       se."studentId",
+       se."academicYearId",
+       se."classId",
+       se."streamId",
+       se."enrolledAt",
+       se.status,
+       se."createdAt",
+       se."updatedAt",
+
+       ay.name AS "academicYearName",
+       ay."startDate" AS "academicYearStartDate",
+       ay."endDate" AS "academicYearEndDate",
+
+       c.name AS "className",
+       c.level AS "classLevel",
+
+       st.name AS "streamName"
+
+     FROM "StudentEnrollment" se
+
+     INNER JOIN "AcademicYear" ay
+       ON ay.id = se."academicYearId"
+
+     INNER JOIN "Class" c
+       ON c.id = se."classId"
+
+     LEFT JOIN "Stream" st
+       ON st.id = se."streamId"
+
+     WHERE se."studentId" = $1
+       AND ay."schoolId" = $2
+       AND se.status = 'ACTIVE'
+
+     ORDER BY ay."startDate" DESC, se."enrolledAt" DESC
+
+     LIMIT 1`,
+    [studentId, schoolId],
+  );
+
+  if (result.rows.length === 0) {
+    const error = new Error("Student has no current enrollment.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return result.rows[0];
+}
+
 export async function updateStudentEnrollment({
   schoolId,
   enrollmentId,
