@@ -670,6 +670,15 @@ export async function updateStudentEnrollment({
 
   const updatedStatus = status ?? existingEnrollment.status;
 
+  // Prevent closed enrollments from being reactivated.
+  if (existingEnrollment.status !== "ACTIVE" && updatedStatus === "ACTIVE") {
+    const error = new Error(
+      "A completed, transferred, or withdrawn enrollment cannot be reactivated.",
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
   // Prevent the same student from being enrolled twice
   // in the same academic year.
   if (updatedAcademicYearId !== existingEnrollment.academicYearId) {
