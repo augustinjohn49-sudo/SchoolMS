@@ -61,7 +61,39 @@ export async function getStudentEnrollmentsController(req, res) {
       });
     }
 
-    const { academicYearId, classId, streamId, status } = req.query;
+    // const { academicYearId, classId, streamId, status } = req.query;
+
+    const {
+      academicYearId,
+      classId,
+      streamId,
+      status,
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    } = req.query;
+
+    const parsedPage = page ? Number(page) : 1;
+    const parsedLimit = limit ? Number(limit) : 20;
+
+    if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Page must be a positive integer.",
+      });
+    }
+
+    if (
+      !Number.isInteger(parsedLimit) ||
+      parsedLimit < 1 ||
+      parsedLimit > 100
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Limit must be an integer between 1 and 100.",
+      });
+    }
 
     const enrollments = await getStudentEnrollmentsBySchool({
       schoolId,
@@ -69,11 +101,16 @@ export async function getStudentEnrollmentsController(req, res) {
       classId,
       streamId,
       status,
+      page: parsedPage,
+      limit: parsedLimit,
+      sortBy: sortBy || "lastName",
+      sortOrder: sortOrder || "asc",
     });
 
     return res.status(200).json({
       success: true,
-      data: enrollments,
+      data: enrollments.data,
+      pagination: enrollments.pagination,
     });
   } catch (error) {
     console.error("Get student enrollments error:", error);

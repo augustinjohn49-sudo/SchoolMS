@@ -188,7 +188,54 @@ export async function getStudentEnrollmentsBySchool({
   classId,
   streamId,
   status,
+  page = 1,
+  limit = 20,
+  sortBy = "lastName",
+  sortOrder = "asc",
 }) {
+  const allowedSortFields = {
+    lastName: 's."lastName"',
+    firstName: 's."firstName"',
+    admissionNumber: 's."admissionNumber"',
+    enrolledAt: 'se."enrolledAt"',
+    createdAt: 'se."createdAt"',
+    academicYear: 'ay."startDate"',
+  };
+
+  const sortColumn = allowedSortFields[sortBy] || allowedSortFields.lastName;
+
+  const sortDirection = sortOrder.toLowerCase() === "desc" ? "DESC" : "ASC";
+
+  const offset = (page - 1) * limit;
+
+  const countResult = await pool.query(
+    `SELECT COUNT(*)::int AS total
+   FROM "StudentEnrollment" se
+   INNER JOIN "Student" s
+     ON s.id = se."studentId"
+   INNER JOIN "AcademicYear" ay
+     ON ay.id = se."academicYearId"
+   INNER JOIN "Class" c
+     ON c.id = se."classId"
+   LEFT JOIN "Stream" st
+     ON st.id = se."streamId"
+   WHERE s."schoolId" = $1
+     AND ($2::text IS NULL OR se."academicYearId" = $2)
+     AND ($3::text IS NULL OR se."classId" = $3)
+     AND ($4::text IS NULL OR se."streamId" = $4)
+     AND ($5::"EnrollmentStatus" IS NULL OR se.status = $5::"EnrollmentStatus")`,
+    [
+      schoolId,
+      academicYearId ?? null,
+      classId ?? null,
+      streamId ?? null,
+      status ?? null,
+    ],
+  );
+
+  const total = countResult.rows[0].total;
+  const totalPages = Math.ceil(total / limit);
+
   const result = await pool.query(
     `SELECT
       se.id,
@@ -233,20 +280,29 @@ export async function getStudentEnrollmentsBySchool({
       AND ($4::text IS NULL OR se."streamId" = $4)
       AND ($5::"EnrollmentStatus" IS NULL OR se.status = $5::"EnrollmentStatus")
 
-    ORDER BY
-      s."lastName" ASC,
-      s."firstName" ASC,
-      ay."startDate" DESC`,
+    ORDER BY ${sortColumn} ${sortDirection}
+      LIMIT $6
+      OFFSET $7`,
     [
       schoolId,
       academicYearId ?? null,
       classId ?? null,
       streamId ?? null,
       status ?? null,
+      limit,
+      offset,
     ],
   );
 
-  return result.rows;
+  return {
+    data: result.rows,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
 }
 
 export async function getStudentEnrollmentById({ schoolId, enrollmentId }) {
