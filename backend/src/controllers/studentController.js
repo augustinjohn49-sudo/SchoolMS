@@ -7,6 +7,8 @@ import {
   bulkUpdateStudentStatus,
 } from "../services/studentService.js";
 
+import { getStudentEnrollmentHistory } from "../services/studentEnrollmentService.js";
+
 export async function createStudentController(req, res) {
   try {
     const {
@@ -327,6 +329,39 @@ export async function bulkUpdateStatus(req, res) {
     return res.status(500).json({
       success: false,
       message: "Failed to update student statuses.",
+    });
+  }
+}
+
+export async function getStudentEnrollmentHistoryController(req, res) {
+  try {
+    const { studentId } = req.params;
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const enrollments = await getStudentEnrollmentHistory({
+      schoolId,
+      studentId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: enrollments,
+    });
+  } catch (error) {
+    console.error("Get student enrollment history error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to retrieve student enrollment history.",
     });
   }
 }
