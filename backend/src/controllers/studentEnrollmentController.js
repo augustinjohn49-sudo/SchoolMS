@@ -149,6 +149,15 @@ export async function updateStudentEnrollmentController(req, res) {
       });
     }
 
+    const allowedStatuses = ["ACTIVE", "COMPLETED", "TRANSFERRED", "WITHDRAWN"];
+
+    if (status !== undefined && !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid enrollment status. Allowed values are: ${allowedStatuses.join(", ")}.`,
+      });
+    }
+
     const enrollment = await updateStudentEnrollment({
       schoolId,
       enrollmentId,
