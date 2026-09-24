@@ -1,12 +1,22 @@
 import express from "express";
 
-import { createAcademicYearController } from "../controllers/academicYearController.js";
+import {
+  createAcademicYearController,
+  getAcademicYearsController,
+} from "../controllers/academicYearController.js";
 
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
 import { requireSchoolAccess } from "../middleware/schoolAccessMiddleware.js";
 
 const router = express.Router();
+
+router.get(
+  "/",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getAcademicYearsController,
+);
 
 router.post(
   "/",

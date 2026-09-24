@@ -83,3 +83,25 @@ export async function createAcademicYear({
 
   return result.rows[0];
 }
+
+export async function getAcademicYearsBySchool({ schoolId }) {
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      "schoolId",
+      name,
+      "startDate",
+      "endDate",
+      status,
+      "createdAt",
+      "updatedAt"
+    FROM "AcademicYear"
+    WHERE "schoolId" = $1
+    ORDER BY "startDate" DESC
+    `,
+    [schoolId],
+  );
+
+  return result.rows;
+}

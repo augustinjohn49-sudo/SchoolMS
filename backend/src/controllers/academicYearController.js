@@ -1,4 +1,7 @@
-import { createAcademicYear } from "../services/academicYearService.js";
+import {
+  createAcademicYear,
+  getAcademicYearsBySchool,
+} from "../services/academicYearService.js";
 
 export async function createAcademicYearController(req, res) {
   try {
@@ -54,6 +57,35 @@ export async function createAcademicYearController(req, res) {
     return res.status(500).json({
       success: false,
       message: "Failed to create academic year.",
+    });
+  }
+}
+
+export async function getAcademicYearsController(req, res) {
+  try {
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "School access is required.",
+      });
+    }
+
+    const academicYears = await getAcademicYearsBySchool({
+      schoolId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: academicYears,
+    });
+  } catch (error) {
+    console.error("Get academic years error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve academic years.",
     });
   }
 }
