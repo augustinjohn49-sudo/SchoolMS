@@ -6,6 +6,7 @@ import {
   getCurrentStudentEnrollment,
   updateStudentEnrollment,
   deleteStudentEnrollment,
+  promoteStudent,
 } from "../services/studentEnrollmentService.js";
 
 export async function createStudentEnrollmentController(req, res) {
@@ -287,6 +288,83 @@ export async function deleteStudentEnrollmentController(req, res) {
       message: error.statusCode
         ? error.message
         : "Failed to delete student enrollment.",
+    });
+  }
+}
+
+export async function promoteStudentController(req, res) {
+  try {
+    const { studentId } = req.params;
+    const { academicYearId, classId, streamId } = req.body;
+
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    if (!studentId || !academicYearId || !classId) {
+      return res.status(400).json({
+        success: false,
+        message: "academicYearId and classId are required.",
+      });
+    }
+
+    const result = await promoteStudent({
+      schoolId,
+      studentId,
+      academicYearId,
+      classId,
+      streamId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Student promoted successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Promote student error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode ? error.message : "Failed to promote student.",
+    });
+  }
+}
+
+export async function getStudentEnrollmentHistoryController(req, res) {
+  try {
+    const { studentId } = req.params;
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const enrollments = await getStudentEnrollmentHistory({
+      schoolId,
+      studentId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: enrollments,
+    });
+  } catch (error) {
+    console.error("Get student enrollment history error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to retrieve student enrollment history.",
     });
   }
 }

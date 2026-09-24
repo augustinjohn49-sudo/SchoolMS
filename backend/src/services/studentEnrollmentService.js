@@ -808,3 +808,270 @@ export async function deleteStudentEnrollment({ schoolId, enrollmentId }) {
 
   return result.rows[0];
 }
+
+export async function promoteStudent({
+  schoolId,
+  studentId,
+  academicYearId,
+  classId,
+  streamId,
+}) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1. Verify that the student belongs to the authenticated school.
+    const studentResult = await client.query(
+      `
+      SELECT
+        id,
+        "schoolId",
+        "admissionNumber",
+        "firstName",
+        "middleName",
+        "lastName",
+        status
+      FROM "Student"
+      WHERE id = $1
+        AND "schoolId" = $2
+      LIMIT 1
+      `,
+      [studentId, schoolId],
+    );
+
+    if (studentResult.rows.length === 0) {
+      const error = new Error("Student not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // 2. Find the student's current active enrollment.
+    const currentEnrollmentResult = await client.query(
+      `
+      SELECT
+        se.id,
+        se."academicYearId",
+        se."classId",
+        se."streamId",
+        se.status,
+        ay.name AS "academicYearName",
+        c.name AS "className",
+        s.name AS "streamName"
+      FROM "StudentEnrollment" se
+      INNER JOIN "AcademicYear" ay
+        ON ay.id = se."academicYearId"
+      INNER JOIN "Class" c
+        ON c.id = se."classId"
+      LEFT JOIN "Stream" s
+        ON s.id = se."streamId"
+      WHERE se."studentId" = $1
+        AND ay."schoolId" = $2
+        AND se.status = 'ACTIVE'
+      ORDER BY ay."startDate" DESC, se."enrolledAt" DESC
+      LIMIT 1
+      `,
+      [studentId, schoolId],
+    );
+
+    if (currentEnrollmentResult.rows.length === 0) {
+      const error = new Error("Student has no current enrollment.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const currentEnrollment = currentEnrollmentResult.rows[0];
+
+    // 3. Prevent promoting a student into the same academic year.
+    if (currentEnrollment.academicYearId === academicYearId) {
+      const error = new Error(
+        "The destination academic year must be different from the student's current academic year.",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // 4. Verify that the destination academic year belongs to the school
+    //    and is active.
+    const academicYearResult = await client.query(
+      `
+      SELECT
+        id,
+        "schoolId",
+        name,
+        "startDate",
+        "endDate",
+        status
+      FROM "AcademicYear"
+      WHERE id = $1
+        AND "schoolId" = $2
+      LIMIT 1
+      `,
+      [academicYearId, schoolId],
+    );
+
+    if (academicYearResult.rows.length === 0) {
+      const error = new Error("Destination academic year not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const destinationAcademicYear = academicYearResult.rows[0];
+
+    if (destinationAcademicYear.status !== "ACTIVE") {
+      const error = new Error("The destination academic year must be active.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // 5. Verify that the destination class belongs to the destination
+    //    academic year and school.
+    const classResult = await client.query(
+      `
+      SELECT
+        id,
+        "academicYearId",
+        name,
+        level
+      FROM "Class"
+      WHERE id = $1
+        AND "academicYearId" = $2
+      LIMIT 1
+      `,
+      [classId, academicYearId],
+    );
+
+    if (classResult.rows.length === 0) {
+      const error = new Error(
+        "Destination class does not belong to the destination academic year.",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const destinationClass = classResult.rows[0];
+
+    // 6. If a stream was supplied, verify that it belongs to the
+    //    destination class.
+    if (streamId) {
+      const streamResult = await client.query(
+        `
+        SELECT
+          id,
+          "classId",
+          name
+        FROM "Stream"
+        WHERE id = $1
+          AND "classId" = $2
+        LIMIT 1
+        `,
+        [streamId, classId],
+      );
+
+      if (streamResult.rows.length === 0) {
+        const error = new Error(
+          "Destination stream does not belong to the destination class.",
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
+    // 7. Prevent duplicate enrollment in the destination academic year.
+    const duplicateEnrollmentResult = await client.query(
+      `
+      SELECT id
+      FROM "StudentEnrollment"
+      WHERE "studentId" = $1
+        AND "academicYearId" = $2
+      LIMIT 1
+      `,
+      [studentId, academicYearId],
+    );
+
+    if (duplicateEnrollmentResult.rows.length > 0) {
+      const error = new Error(
+        "The student is already enrolled in the destination academic year.",
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    // 8. Complete the current enrollment.
+    await client.query(
+      `
+      UPDATE "StudentEnrollment"
+      SET
+        status = 'COMPLETED',
+        "updatedAt" = NOW()
+      WHERE id = $1
+      `,
+      [currentEnrollment.id],
+    );
+
+    // 9. Create the new enrollment for the destination academic year.
+    const newEnrollmentResult = await client.query(
+      `
+      INSERT INTO "StudentEnrollment" (
+        id,
+        "studentId",
+        "academicYearId",
+        "classId",
+        "streamId",
+        "enrolledAt",
+        status,
+        "createdAt",
+        "updatedAt"
+      )
+      VALUES (
+        gen_random_uuid(),
+        $1,
+        $2,
+        $3,
+        $4,
+        NOW(),
+        'ACTIVE',
+        NOW(),
+        NOW()
+      )
+      RETURNING
+        id,
+        "studentId",
+        "academicYearId",
+        "classId",
+        "streamId",
+        "enrolledAt",
+        status,
+        "createdAt",
+        "updatedAt"
+      `,
+      [studentId, academicYearId, classId, streamId || null],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      previousEnrollment: {
+        id: currentEnrollment.id,
+        academicYearId: currentEnrollment.academicYearId,
+        academicYearName: currentEnrollment.academicYearName,
+        classId: currentEnrollment.classId,
+        className: currentEnrollment.className,
+        streamId: currentEnrollment.streamId,
+        streamName: currentEnrollment.streamName,
+        status: "COMPLETED",
+      },
+      newEnrollment: newEnrollmentResult.rows[0],
+      destination: {
+        academicYear: destinationAcademicYear,
+        class: destinationClass,
+        streamId: streamId || null,
+      },
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}

@@ -7,6 +7,8 @@ import {
   getCurrentStudentEnrollmentController,
   updateStudentEnrollmentController,
   deleteStudentEnrollmentController,
+  promoteStudentController,
+  getStudentEnrollmentHistoryController,
 } from "../controllers/studentEnrollmentController.js";
 
 import {
@@ -28,6 +30,20 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getCurrentStudentEnrollmentController,
+);
+
+router.get(
+  "/student/:studentId/history",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getStudentEnrollmentHistoryController,
+);
+
+router.post(
+  "/promote/:studentId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  promoteStudentController,
 );
 
 router.get(
