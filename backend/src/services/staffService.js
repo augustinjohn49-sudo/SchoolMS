@@ -167,7 +167,34 @@ export async function createStaff({
 /**
  * Get all staff members for a school
  */
-export async function getStaffBySchool(schoolId) {
+export async function getStaffBySchool(
+  schoolId,
+  { position, employmentType, status } = {},
+) {
+  if (!schoolId) {
+    const error = new Error("School ID is required.");
+    error.code = "SCHOOL_REQUIRED";
+    throw error;
+  }
+
+  const conditions = ['s."schoolId" = $1'];
+  const values = [schoolId];
+
+  if (position) {
+    conditions.push(`s."position" = $${values.length + 1}`);
+    values.push(position);
+  }
+
+  if (employmentType) {
+    conditions.push(`s."employmentType" = $${values.length + 1}`);
+    values.push(employmentType);
+  }
+
+  if (status) {
+    conditions.push(`s."status" = $${values.length + 1}`);
+    values.push(status);
+  }
+
   const result = await pool.query(
     `
     SELECT
@@ -177,11 +204,11 @@ export async function getStaffBySchool(schoolId) {
       u.status AS "userStatus"
     FROM "Staff" s
     LEFT JOIN "User" u
-      ON s."userId" = u.id
-    WHERE s."schoolId" = $1
+      ON u.id = s."userId"
+    WHERE ${conditions.join(" AND ")}
     ORDER BY s."createdAt" DESC
     `,
-    [schoolId],
+    values,
   );
 
   return result.rows;

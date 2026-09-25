@@ -82,20 +82,68 @@ export async function createStaffController(req, res) {
  */
 export async function getStaffController(req, res) {
   try {
-    const schoolId = req.user.schoolId;
+    const { position, employmentType, status } = req.query;
 
-    if (!schoolId) {
-      return res.status(403).json({
+    const validPositions = [
+      "TEACHER",
+      "HEAD_TEACHER",
+      "DEPUTY_HEAD_TEACHER",
+      "SENIOR_TEACHER",
+      "BURSAR",
+      "SECRETARY",
+      "COUNSELOR",
+      "LIBRARIAN",
+      "ICT_OFFICER",
+      "NURSE",
+      "SECURITY",
+      "SUPPORT_STAFF",
+      "OTHER",
+    ];
+
+    const validEmploymentTypes = [
+      "FULL_TIME",
+      "PART_TIME",
+      "CONTRACT",
+      "VOLUNTEER",
+    ];
+
+    const validStatuses = [
+      "ACTIVE",
+      "INACTIVE",
+      "SUSPENDED",
+      "TERMINATED",
+      "RESIGNED",
+    ];
+
+    if (position && !validPositions.includes(position)) {
+      return res.status(400).json({
         success: false,
-        message: "Your account is not associated with a school.",
+        message: "Invalid staff position.",
       });
     }
 
-    const staff = await getStaffBySchool(schoolId);
+    if (employmentType && !validEmploymentTypes.includes(employmentType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employment type.",
+      });
+    }
+
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff status.",
+      });
+    }
+
+    const staff = await getStaffBySchool(req.user.schoolId, {
+      position,
+      employmentType,
+      status,
+    });
 
     return res.status(200).json({
       success: true,
-      count: staff.length,
       data: staff,
     });
   } catch (error) {
@@ -103,7 +151,7 @@ export async function getStaffController(req, res) {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to retrieve staff members.",
+      message: "Failed to retrieve staff.",
     });
   }
 }
