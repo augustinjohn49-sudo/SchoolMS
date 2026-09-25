@@ -4,6 +4,7 @@ import {
   createStaffController,
   getStaffController,
   getStaffByIdController,
+  updateStaffController,
 } from "../controllers/staffController.js";
 
 import {
@@ -31,6 +32,16 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getStaffController,
+);
+
+/**
+ * Update staff member
+ */
+router.patch(
+  "/:staffId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  updateStaffController,
 );
 
 /**

@@ -2,6 +2,7 @@ import {
   createStaff,
   getStaffBySchool,
   getStaffById,
+  updateStaff,
 } from "../services/staffService.js";
 
 /**
@@ -149,6 +150,101 @@ export async function getStaffByIdController(req, res) {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve staff member.",
+    });
+  }
+}
+
+/**
+ * Update staff member
+ */
+export async function updateStaffController(req, res) {
+  try {
+    const schoolId = req.user.schoolId;
+    const { staffId } = req.params;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    if (!staffId) {
+      return res.status(400).json({
+        success: false,
+        message: "Staff ID is required.",
+      });
+    }
+
+    const {
+      staffNumber,
+      firstName,
+      middleName,
+      lastName,
+      gender,
+      dateOfBirth,
+      phone,
+      email,
+      address,
+      position,
+      employmentType,
+      status,
+      dateJoined,
+    } = req.body;
+
+    // Make sure at least one field is supplied
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one field is required for an update.",
+      });
+    }
+
+    const staff = await updateStaff({
+      schoolId,
+      staffId,
+      staffNumber,
+      firstName,
+      middleName,
+      lastName,
+      gender,
+      dateOfBirth,
+      phone,
+      email,
+      address,
+      position,
+      employmentType,
+      status,
+      dateJoined,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Staff member updated successfully.",
+      data: staff,
+    });
+  } catch (error) {
+    console.error("Update staff error:", error);
+
+    if (error.message === "Staff member not found.") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (
+      error.message === "A staff member with this staff number already exists."
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Failed to update staff member.",
     });
   }
 }

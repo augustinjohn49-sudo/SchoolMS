@@ -211,3 +211,101 @@ export async function getStaffById({ schoolId, staffId }) {
 
   return result.rows[0];
 }
+
+/**
+ * Update a staff member
+ */
+export async function updateStaff({
+  schoolId,
+  staffId,
+  staffNumber,
+  firstName,
+  middleName,
+  lastName,
+  gender,
+  dateOfBirth,
+  phone,
+  email,
+  address,
+  position,
+  employmentType,
+  status,
+  dateJoined,
+}) {
+  const existingResult = await pool.query(
+    `
+    SELECT *
+    FROM "Staff"
+    WHERE id = $1
+      AND "schoolId" = $2
+    `,
+    [staffId, schoolId],
+  );
+
+  if (existingResult.rows.length === 0) {
+    throw new Error("Staff member not found.");
+  }
+
+  const existingStaff = existingResult.rows[0];
+
+  // If staff number is being changed, make sure it is not already used
+  if (staffNumber !== undefined && staffNumber !== existingStaff.staffNumber) {
+    const duplicateResult = await pool.query(
+      `
+      SELECT id
+      FROM "Staff"
+      WHERE "schoolId" = $1
+        AND "staffNumber" = $2
+        AND id <> $3
+      `,
+      [schoolId, staffNumber, staffId],
+    );
+
+    if (duplicateResult.rows.length > 0) {
+      throw new Error("A staff member with this staff number already exists.");
+    }
+  }
+
+  const result = await pool.query(
+    `
+    UPDATE "Staff"
+    SET
+      "staffNumber" = COALESCE($1, "staffNumber"),
+      "firstName" = COALESCE($2, "firstName"),
+      "middleName" = $3,
+      "lastName" = COALESCE($4, "lastName"),
+      gender = COALESCE($5, gender),
+      "dateOfBirth" = $6,
+      phone = $7,
+      email = $8,
+      address = $9,
+      position = COALESCE($10, position),
+      "employmentType" = COALESCE($11, "employmentType"),
+      status = COALESCE($12, status),
+      "dateJoined" = $13,
+      "updatedAt" = NOW()
+    WHERE id = $14
+      AND "schoolId" = $15
+    RETURNING *
+    `,
+    [
+      staffNumber,
+      firstName,
+      middleName ?? existingStaff.middleName,
+      lastName,
+      gender,
+      dateOfBirth ?? existingStaff.dateOfBirth,
+      phone ?? existingStaff.phone,
+      email ?? existingStaff.email,
+      address ?? existingStaff.address,
+      position,
+      employmentType,
+      status,
+      dateJoined ?? existingStaff.dateJoined,
+      staffId,
+      schoolId,
+    ],
+  );
+
+  return result.rows[0];
+}
