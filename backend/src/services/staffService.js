@@ -1,4 +1,6 @@
+import { randomUUID } from "crypto";
 import pool from "../config/prisma.js";
+import { hashPassword } from "../utils/password.js";
 
 /**
  * Create a new staff member
@@ -308,4 +310,162 @@ export async function updateStaff({
   );
 
   return result.rows[0];
+}
+
+/**
+ * Create a login account for a staff member
+ */
+export async function createStaffAccount({
+  schoolId,
+  staffId,
+  email,
+  password,
+}) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    if (!email || !password) {
+      throw new Error("Email and password are required.");
+    }
+
+    if (password.length < 8) {
+      throw new Error("Password must be at least 8 characters long.");
+    }
+
+    // Find the staff member within the logged-in school
+    const staffResult = await client.query(
+      `
+      SELECT
+        id,
+        "schoolId",
+        "userId",
+        "firstName",
+        "lastName",
+        position
+      FROM "Staff"
+      WHERE id = $1
+        AND "schoolId" = $2
+      FOR UPDATE
+      `,
+      [staffId, schoolId],
+    );
+
+    if (staffResult.rows.length === 0) {
+      throw new Error("Staff member not found.");
+    }
+
+    const staff = staffResult.rows[0];
+
+    // A staff member can only have one login account
+    if (staff.userId) {
+      throw new Error("This staff member already has a login account.");
+    }
+
+    // For now, only teachers can receive the TEACHER system role
+    if (staff.position !== "TEACHER") {
+      throw new Error(
+        "Only staff with the TEACHER position can currently receive a teacher login account.",
+      );
+    }
+
+    // Check whether the email is already registered
+    const existingUserResult = await client.query(
+      `
+      SELECT id
+      FROM "User"
+      WHERE email = $1
+      `,
+      [email],
+    );
+
+    if (existingUserResult.rows.length > 0) {
+      throw new Error("A user with this email already exists.");
+    }
+
+    const passwordHash = await hashPassword(password);
+    const userId = randomUUID();
+    const now = new Date();
+
+    // Create the User account
+    const userResult = await client.query(
+      `
+      INSERT INTO "User" (
+        id,
+        "schoolId",
+        "firstName",
+        "lastName",
+        email,
+        "passwordHash",
+        role,
+        status,
+        "createdAt",
+        "updatedAt"
+      )
+      VALUES (
+        $1,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        'TEACHER',
+        'ACTIVE',
+        $7,
+        $7
+      )
+      RETURNING
+        id,
+        "schoolId",
+        "firstName",
+        "lastName",
+        email,
+        role,
+        status,
+        "createdAt",
+        "updatedAt"
+      `,
+      [
+        userId,
+        schoolId,
+        staff.firstName,
+        staff.lastName,
+        email,
+        passwordHash,
+        now,
+      ],
+    );
+
+    // Link Staff to User
+    await client.query(
+      `
+      UPDATE "Staff"
+      SET
+        "userId" = $1,
+        "updatedAt" = NOW()
+      WHERE id = $2
+        AND "schoolId" = $3
+      `,
+      [userId, staffId, schoolId],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      staff: {
+        id: staff.id,
+        // staffNumber: undefined,
+        firstName: staff.firstName,
+        lastName: staff.lastName,
+        position: staff.position,
+      },
+      user: userResult.rows[0],
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }

@@ -3,8 +3,8 @@ import {
   getStaffBySchool,
   getStaffById,
   updateStaff,
+  createStaffAccount,
 } from "../services/staffService.js";
-
 /**
  * Create staff member
  */
@@ -245,6 +245,96 @@ export async function updateStaffController(req, res) {
     return res.status(400).json({
       success: false,
       message: error.message || "Failed to update staff member.",
+    });
+  }
+}
+
+/**
+ * Create and link a login account for a staff member
+ */
+export async function createStaffAccountController(req, res) {
+  try {
+    const schoolId = req.user.schoolId;
+    const { staffId } = req.params;
+    const { email, password } = req.body;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    if (!staffId) {
+      return res.status(400).json({
+        success: false,
+        message: "Staff ID is required.",
+      });
+    }
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required.",
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long.",
+      });
+    }
+
+    const result = await createStaffAccount({
+      schoolId,
+      staffId,
+      email,
+      password,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Staff login account created successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Create staff account error:", error);
+
+    if (error.message === "Staff member not found.") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === "This staff member already has a login account.") {
+      return res.status(409).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.message === "A user with this email already exists.") {
+      return res.status(409).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (
+      error.message ===
+      "Only staff with the TEACHER position can currently receive a teacher login account."
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Failed to create staff login account.",
     });
   }
 }
