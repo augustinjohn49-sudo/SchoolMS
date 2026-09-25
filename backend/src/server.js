@@ -12,6 +12,7 @@ import classRoutes from "./routes/classRoutes.js";
 import streamRoutes from "./routes/streamRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import studentEnrollmentRoutes from "./routes/studentEnrollmentRoutes.js";
+import staffRoutes from "./routes/staffRoutes.js";
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api/classes", classRoutes); // Class routes
 app.use("/api/streams", streamRoutes); // Stream routes
 app.use("/api/students", studentRoutes); // Student routes
 app.use("/api/student-enrollments", studentEnrollmentRoutes);
+app.use("/api/staff", staffRoutes); // Staff routes
 
 // Start server
 async function startServer() {

@@ -28,6 +28,7 @@ model School {
 
   users         User[]
   students      Student[]
+  staff         Staff[]
   academicYears AcademicYear[]
 }
 
@@ -44,9 +45,39 @@ model User {
   updatedAt    DateTime   @updatedAt
 
   school School? @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  staff  Staff?
 
   @@index([schoolId])
   @@index([role])
+}
+
+model Staff {
+  id             String         @id @default(uuid())
+  schoolId       String
+  userId         String?        @unique
+  staffNumber    String
+  firstName      String
+  middleName     String?
+  lastName       String
+  gender         StaffGender
+  dateOfBirth    DateTime?
+  phone          String?
+  email          String?
+  address        String?
+  position       StaffPosition
+  employmentType EmploymentType @default(FULL_TIME)
+  status         StaffStatus    @default(ACTIVE)
+  dateJoined     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([schoolId, staffNumber])
+  @@index([schoolId])
+  @@index([status])
+  @@index([position])
 }
 
 model AcademicYear {
@@ -59,9 +90,9 @@ model AcademicYear {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  terms  Term[]
-  classes Class[]
+  school             School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  terms              Term[]
+  classes            Class[]
   studentEnrollments StudentEnrollment[]
 
   @@unique([schoolId, name])
@@ -70,20 +101,20 @@ model AcademicYear {
 }
 
 model Student {
-  id             String        @id @default(uuid())
-  schoolId       String
+  id              String        @id @default(uuid())
+  schoolId        String
   admissionNumber String
-  firstName      String
-  middleName     String?
-  lastName       String
-  dateOfBirth    DateTime?
-  gender         StudentGender
-  phone          String?
-  email          String?
-  address        String?
-  status         StudentStatus @default(ACTIVE)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  firstName       String
+  middleName      String?
+  lastName        String
+  dateOfBirth     DateTime?
+  gender          StudentGender
+  phone           String?
+  email           String?
+  address         String?
+  status          StudentStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -95,15 +126,15 @@ model Student {
 }
 
 model StudentEnrollment {
-  id             String   @id @default(uuid())
+  id             String           @id @default(uuid())
   studentId      String
   academicYearId String
   classId        String
   streamId       String?
-  enrolledAt     DateTime @default(now())
+  enrolledAt     DateTime         @default(now())
   status         EnrollmentStatus @default(ACTIVE)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
@@ -143,8 +174,8 @@ model Class {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  streams      Stream[]
+  academicYear       AcademicYear        @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  streams            Stream[]
   studentEnrollments StudentEnrollment[]
 
   @@unique([academicYearId, name])
@@ -159,7 +190,7 @@ model Stream {
   updatedAt DateTime @updatedAt
 
   class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
-  
+
   studentEnrollments StudentEnrollment[]
 
   @@unique([classId, name])
@@ -222,4 +253,41 @@ enum EnrollmentStatus {
   COMPLETED
   TRANSFERRED
   WITHDRAWN
+}
+
+enum StaffGender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum StaffPosition {
+  TEACHER
+  HEAD_TEACHER
+  DEPUTY_HEAD_TEACHER
+  SENIOR_TEACHER
+  BURSAR
+  SECRETARY
+  COUNSELOR
+  LIBRARIAN
+  ICT_OFFICER
+  NURSE
+  SECURITY
+  SUPPORT_STAFF
+  OTHER
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  VOLUNTEER
+}
+
+enum StaffStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  TERMINATED
+  RESIGNED
 }
