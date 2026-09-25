@@ -6,6 +6,7 @@ import {
   getStaffByIdController,
   updateStaffController,
   createStaffAccountController,
+  updateStaffAccountStatusController,
 } from "../controllers/staffController.js";
 
 import {
@@ -53,6 +54,13 @@ router.post(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   createStaffAccountController,
+);
+
+router.patch(
+  "/:staffId/account-status",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  updateStaffAccountStatusController,
 );
 
 /**

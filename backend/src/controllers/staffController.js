@@ -4,7 +4,9 @@ import {
   getStaffById,
   updateStaff,
   createStaffAccount,
+  updateStaffAccountStatus,
 } from "../services/staffService.js";
+
 /**
  * Create staff member
  */
@@ -335,6 +337,67 @@ export async function createStaffAccountController(req, res) {
     return res.status(400).json({
       success: false,
       message: error.message || "Failed to create staff login account.",
+    });
+  }
+}
+
+export async function updateStaffAccountStatusController(req, res) {
+  try {
+    const { staffId } = req.params;
+    const { status } = req.body;
+
+    if (!staffId) {
+      return res.status(400).json({
+        success: false,
+        message: "Staff ID is required.",
+      });
+    }
+
+    if (!["ACTIVE", "INACTIVE"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Account status must be ACTIVE or INACTIVE.",
+      });
+    }
+
+    const result = await updateStaffAccountStatus({
+      schoolId: req.user.schoolId,
+      staffId,
+      status,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Staff account status updated successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Update staff account status error:", error);
+
+    if (error.code === "STAFF_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "Staff member not found.",
+      });
+    }
+
+    if (error.code === "STAFF_ACCOUNT_NOT_FOUND") {
+      return res.status(400).json({
+        success: false,
+        message: "This staff member does not have a login account.",
+      });
+    }
+
+    if (error.code === "USER_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update staff account status.",
     });
   }
 }

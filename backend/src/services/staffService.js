@@ -334,7 +334,6 @@ export async function createStaffAccount({
       throw new Error("Password must be at least 8 characters long.");
     }
 
-    // Find the staff member within the logged-in school
     const staffResult = await client.query(
       `
       SELECT
@@ -461,6 +460,110 @@ export async function createStaffAccount({
         position: staff.position,
       },
       user: userResult.rows[0],
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function updateStaffAccountStatus({ schoolId, staffId, status }) {
+  if (!schoolId) {
+    const error = new Error("School ID is required.");
+    error.code = "SCHOOL_REQUIRED";
+    throw error;
+  }
+
+  if (!staffId) {
+    const error = new Error("Staff ID is required.");
+    error.code = "STAFF_ID_REQUIRED";
+    throw error;
+  }
+
+  if (!["ACTIVE", "INACTIVE"].includes(status)) {
+    const error = new Error("Account status must be ACTIVE or INACTIVE.");
+    error.code = "INVALID_ACCOUNT_STATUS";
+    throw error;
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // Find the staff member and its linked user account.
+    const staffResult = await client.query(
+      `
+        SELECT
+            s.id,
+            s."userId",
+            s."firstName",
+            s."lastName",
+            u.email,
+            u.status AS "userStatus"
+        FROM "Staff" s
+        LEFT JOIN "User" u
+            ON u.id = s."userId"
+        WHERE s.id = $1
+            AND s."schoolId" = $2
+        `,
+      [staffId, schoolId],
+    );
+
+    if (staffResult.rows.length === 0) {
+      const error = new Error("Staff member not found.");
+      error.code = "STAFF_NOT_FOUND";
+      throw error;
+    }
+
+    const staff = staffResult.rows[0];
+
+    if (!staff.userId) {
+      const error = new Error(
+        "This staff member does not have a login account.",
+      );
+      error.code = "STAFF_ACCOUNT_NOT_FOUND";
+      throw error;
+    }
+
+    const updateResult = await client.query(
+      `
+      UPDATE "User"
+      SET
+        status = $1,
+        "updatedAt" = NOW()
+      WHERE id = $2
+        AND "schoolId" = $3
+      RETURNING
+        id,
+        "schoolId",
+        "firstName",
+        "lastName",
+        email,
+        role,
+        status,
+        "updatedAt"
+      `,
+      [status, staff.userId, schoolId],
+    );
+
+    if (updateResult.rows.length === 0) {
+      const error = new Error("User account not found.");
+      error.code = "USER_NOT_FOUND";
+      throw error;
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      staff: {
+        id: staff.id,
+        firstName: staff.firstName,
+        lastName: staff.lastName,
+      },
+      user: updateResult.rows[0],
     };
   } catch (error) {
     await client.query("ROLLBACK");
