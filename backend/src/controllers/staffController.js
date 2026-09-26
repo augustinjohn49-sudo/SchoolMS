@@ -82,7 +82,13 @@ export async function createStaffController(req, res) {
  */
 export async function getStaffController(req, res) {
   try {
-    const { position, employmentType, status } = req.query;
+    const {
+      position,
+      employmentType,
+      status,
+      page: pageQuery,
+      limit: limitQuery,
+    } = req.query;
 
     const validPositions = [
       "TEACHER",
@@ -136,15 +142,35 @@ export async function getStaffController(req, res) {
       });
     }
 
-    const staff = await getStaffBySchool(req.user.schoolId, {
+    const page = pageQuery === undefined ? 1 : Number(pageQuery);
+    const limit = limitQuery === undefined ? 20 : Number(limitQuery);
+
+    if (!Number.isInteger(page) || page < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Page must be a positive integer.",
+      });
+    }
+
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Limit must be between 1 and 100.",
+      });
+    }
+
+    const result = await getStaffBySchool(req.user.schoolId, {
       position,
       employmentType,
       status,
+      page,
+      limit,
     });
 
     return res.status(200).json({
       success: true,
-      data: staff,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
     console.error("Get staff error:", error);

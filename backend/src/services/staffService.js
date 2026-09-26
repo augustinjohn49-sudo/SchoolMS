@@ -169,7 +169,7 @@ export async function createStaff({
  */
 export async function getStaffBySchool(
   schoolId,
-  { position, employmentType, status } = {},
+  { position, employmentType, status, page = 1, limit = 20 } = {},
 ) {
   if (!schoolId) {
     const error = new Error("School ID is required.");
@@ -195,6 +195,28 @@ export async function getStaffBySchool(
     values.push(status);
   }
 
+  const whereClause = conditions.join(" AND ");
+
+  // Get total number of matching staff members.
+  const countResult = await pool.query(
+    `
+    SELECT COUNT(*)::int AS total
+    FROM "Staff" s
+    WHERE ${whereClause}
+    `,
+    values,
+  );
+
+  const total = countResult.rows[0].total;
+
+  const offset = (page - 1) * limit;
+
+  // Add pagination parameters after the filter parameters.
+  const dataValues = [...values, limit, offset];
+
+  const limitParameter = dataValues.length - 1;
+  const offsetParameter = dataValues.length;
+
   const result = await pool.query(
     `
     SELECT
@@ -205,13 +227,25 @@ export async function getStaffBySchool(
     FROM "Staff" s
     LEFT JOIN "User" u
       ON u.id = s."userId"
-    WHERE ${conditions.join(" AND ")}
+    WHERE ${whereClause}
     ORDER BY s."createdAt" DESC
+    LIMIT $${limitParameter}
+    OFFSET $${offsetParameter}
     `,
-    values,
+    dataValues,
   );
 
-  return result.rows;
+  const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
+  return {
+    data: result.rows,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+    },
+  };
 }
 
 /**
