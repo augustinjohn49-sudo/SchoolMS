@@ -193,6 +193,15 @@ export async function updateTermController(req, res) {
 
     const { name, startDate, endDate, status } = req.body;
 
+    const validStatuses = ["ACTIVE", "INACTIVE", "COMPLETED"];
+
+    if (status !== undefined && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid term status. Allowed values are: ${validStatuses.join(", ")}.`,
+      });
+    }
+
     if (!termId) {
       return res.status(400).json({
         success: false,
