@@ -4,6 +4,7 @@ import {
   createAcademicYearController,
   getAcademicYearsController,
   getAcademicYearByIdController,
+  updateAcademicYearController,
 } from "../controllers/academicYearController.js";
 
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -24,6 +25,14 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getAcademicYearByIdController,
+);
+
+router.patch(
+  "/:academicYearId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  requireSchoolAccess,
+  updateAcademicYearController,
 );
 
 router.post(

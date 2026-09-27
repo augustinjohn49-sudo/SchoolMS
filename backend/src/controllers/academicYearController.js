@@ -2,6 +2,7 @@ import {
   createAcademicYear,
   getAcademicYearsBySchool,
   getAcademicYearById,
+  updateAcademicYear,
 } from "../services/academicYearService.js";
 
 export async function createAcademicYearController(req, res) {
@@ -126,6 +127,89 @@ export async function getAcademicYearByIdController(req, res) {
     return res.status(500).json({
       success: false,
       message: "Failed to retrieve academic year.",
+    });
+  }
+}
+
+export async function updateAcademicYearController(req, res) {
+  try {
+    const { academicYearId } = req.params;
+
+    const { name, startDate, endDate, status } = req.body;
+
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "School access is required.",
+      });
+    }
+
+    const hasUpdate =
+      name !== undefined ||
+      startDate !== undefined ||
+      endDate !== undefined ||
+      status !== undefined;
+
+    if (!hasUpdate) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one academic year field is required for update.",
+      });
+    }
+
+    const allowedStatuses = ["ACTIVE", "INACTIVE", "COMPLETED"];
+
+    if (status !== undefined && !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid academic year status. Allowed values are: ${allowedStatuses.join(", ")}.`,
+      });
+    }
+
+    const academicYear = await updateAcademicYear({
+      schoolId,
+      academicYearId,
+      name,
+      startDate,
+      endDate,
+      status,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Academic year updated successfully.",
+      data: academicYear,
+    });
+  } catch (error) {
+    console.error("Update academic year error:", error);
+
+    if (error.code === "ACADEMIC_YEAR_NOT_FOUND") {
+      return res.status(404).json({
+        success: false,
+        message: "Academic year not found.",
+      });
+    }
+
+    if (error.code === "ACADEMIC_YEAR_EXISTS") {
+      return res.status(409).json({
+        success: false,
+        message:
+          "An academic year with this name already exists for this school.",
+      });
+    }
+
+    if (error.code === "INVALID_DATE_RANGE") {
+      return res.status(400).json({
+        success: false,
+        message: "Start date must be before the end date.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update academic year.",
     });
   }
 }
