@@ -30,6 +30,7 @@ model School {
   students      Student[]
   staff         Staff[]
   academicYears AcademicYear[]
+  subjects      Subject[]
 }
 
 model User {
@@ -177,6 +178,7 @@ model Class {
   academicYear       AcademicYear        @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   streams            Stream[]
   studentEnrollments StudentEnrollment[]
+  classSubjects ClassSubject[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -195,6 +197,40 @@ model Stream {
 
   @@unique([classId, name])
   @@index([classId])
+}
+
+model Subject {
+  id          String        @id @default(uuid())
+  schoolId    String
+  name        String
+  code        String
+  description String?
+  status      SubjectStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classSubjects ClassSubject[]
+
+  @@unique([schoolId, name])
+  @@unique([schoolId, code])
+  @@index([schoolId])
+  @@index([status])
+}
+
+model ClassSubject {
+  id        String   @id @default(uuid())
+  classId   String
+  subjectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, subjectId])
+  @@index([classId])
+  @@index([subjectId])
 }
 
 enum SchoolType {
@@ -290,4 +326,9 @@ enum StaffStatus {
   SUSPENDED
   TERMINATED
   RESIGNED
+}
+
+enum SubjectStatus {
+  ACTIVE
+  INACTIVE
 }
