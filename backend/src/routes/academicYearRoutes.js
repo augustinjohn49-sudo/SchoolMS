@@ -3,6 +3,7 @@ import express from "express";
 import {
   createAcademicYearController,
   getAcademicYearsController,
+  getAcademicYearByIdController,
 } from "../controllers/academicYearController.js";
 
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -16,6 +17,13 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getAcademicYearsController,
+);
+
+router.get(
+  "/:academicYearId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getAcademicYearByIdController,
 );
 
 router.post(

@@ -105,3 +105,32 @@ export async function getAcademicYearsBySchool({ schoolId }) {
 
   return result.rows;
 }
+
+export async function getAcademicYearById({ schoolId, academicYearId }) {
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      "schoolId",
+      name,
+      "startDate",
+      "endDate",
+      status,
+      "createdAt",
+      "updatedAt"
+    FROM "AcademicYear"
+    WHERE id = $1
+      AND "schoolId" = $2
+    LIMIT 1
+    `,
+    [academicYearId, schoolId],
+  );
+
+  if (result.rows.length === 0) {
+    const error = new Error("Academic year not found.");
+    error.code = "ACADEMIC_YEAR_NOT_FOUND";
+    throw error;
+  }
+
+  return result.rows[0];
+}
