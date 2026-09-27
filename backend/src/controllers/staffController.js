@@ -314,6 +314,55 @@ export async function updateStaffController(req, res) {
       dateJoined,
     } = req.body;
 
+    const validGenders = ["MALE", "FEMALE", "OTHER"];
+
+    if (gender !== undefined && !validGenders.includes(gender)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff gender.",
+      });
+    }
+
+    const validPositions = [
+      "TEACHER",
+      "HEAD_TEACHER",
+      "DEPUTY_HEAD_TEACHER",
+      "SENIOR_TEACHER",
+      "BURSAR",
+      "SECRETARY",
+      "COUNSELOR",
+      "LIBRARIAN",
+      "ICT_OFFICER",
+      "NURSE",
+      "SECURITY",
+      "SUPPORT_STAFF",
+      "OTHER",
+    ];
+
+    if (position !== undefined && !validPositions.includes(position)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff position.",
+      });
+    }
+
+    const validEmploymentTypes = [
+      "FULL_TIME",
+      "PART_TIME",
+      "CONTRACT",
+      "VOLUNTEER",
+    ];
+
+    if (
+      employmentType !== undefined &&
+      !validEmploymentTypes.includes(employmentType)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employment type.",
+      });
+    }
+
     // Make sure at least one field is supplied
     if (Object.keys(req.body).length === 0) {
       return res.status(400).json({
