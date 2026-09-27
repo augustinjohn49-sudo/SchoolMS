@@ -45,6 +45,52 @@ export async function createStaffController(req, res) {
       });
     }
 
+    const validGenders = ["MALE", "FEMALE", "OTHER"];
+
+    if (!validGenders.includes(gender)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff gender.",
+      });
+    }
+
+    const validPositions = [
+      "TEACHER",
+      "HEAD_TEACHER",
+      "DEPUTY_HEAD_TEACHER",
+      "SENIOR_TEACHER",
+      "BURSAR",
+      "SECRETARY",
+      "COUNSELOR",
+      "LIBRARIAN",
+      "ICT_OFFICER",
+      "NURSE",
+      "SECURITY",
+      "SUPPORT_STAFF",
+      "OTHER",
+    ];
+
+    if (!validPositions.includes(position)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff position.",
+      });
+    }
+
+    const validEmploymentTypes = [
+      "FULL_TIME",
+      "PART_TIME",
+      "CONTRACT",
+      "VOLUNTEER",
+    ];
+
+    if (employmentType && !validEmploymentTypes.includes(employmentType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employment type.",
+      });
+    }
+
     const staff = await createStaff({
       schoolId,
       userId,
