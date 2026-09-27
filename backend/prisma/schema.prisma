@@ -74,6 +74,7 @@ model Staff {
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  teacherAssignments TeacherClassSubject[]
 
   @@unique([schoolId, staffNumber])
   @@index([schoolId])
@@ -227,10 +228,26 @@ model ClassSubject {
 
   class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
   subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacherAssignments TeacherClassSubject[]
 
   @@unique([classId, subjectId])
   @@index([classId])
   @@index([subjectId])
+}
+
+model TeacherClassSubject {
+  id             String   @id @default(uuid())
+  staffId        String
+  classSubjectId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  staff        Staff        @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  classSubject ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, classSubjectId])
+  @@index([staffId])
+  @@index([classSubjectId])
 }
 
 enum SchoolType {
