@@ -363,6 +363,21 @@ export async function updateStaffController(req, res) {
       });
     }
 
+    const validStatuses = [
+      "ACTIVE",
+      "INACTIVE",
+      "SUSPENDED",
+      "TERMINATED",
+      "RESIGNED",
+    ];
+
+    if (status !== undefined && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff status.",
+      });
+    }
+
     // Make sure at least one field is supplied
     if (Object.keys(req.body).length === 0) {
       return res.status(400).json({
