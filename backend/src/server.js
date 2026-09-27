@@ -14,6 +14,7 @@ import studentRoutes from "./routes/studentRoutes.js";
 import studentEnrollmentRoutes from "./routes/studentEnrollmentRoutes.js";
 import staffRoutes from "./routes/staffRoutes.js";
 import subjectRoutes from "./routes/subjectRoutes.js";
+import classSubjectRoutes from "./routes/classSubjectRoutes.js";
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/api/students", studentRoutes); // Student routes
 app.use("/api/student-enrollments", studentEnrollmentRoutes);
 app.use("/api/staff", staffRoutes); // Staff routes
 app.use("/api/subjects", subjectRoutes);
+app.use("/api/class-subjects", classSubjectRoutes);
 
 // Start server
 async function startServer() {
