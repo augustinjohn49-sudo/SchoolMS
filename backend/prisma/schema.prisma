@@ -180,6 +180,7 @@ model Class {
   streams            Stream[]
   studentEnrollments StudentEnrollment[]
   classSubjects ClassSubject[]
+  timetableEntries  TimetableEntry[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -244,10 +245,31 @@ model TeacherClassSubject {
 
   staff        Staff        @relation(fields: [staffId], references: [id], onDelete: Cascade)
   classSubject ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+  timetableEntries  TimetableEntry[]
 
   @@unique([staffId, classSubjectId])
   @@index([staffId])
   @@index([classSubjectId])
+}
+
+model TimetableEntry {
+  id                  String   @id @default(uuid())
+  classId             String
+  teacherClassSubjectId String
+  dayOfWeek           Int
+  startTime           String
+  endTime             String
+  room                String?
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  class               Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherClassSubject TeacherClassSubject @relation(fields: [teacherClassSubjectId], references: [id], onDelete: Cascade)
+
+  @@index([classId])
+  @@index([teacherClassSubjectId])
+  @@index([dayOfWeek])
 }
 
 enum SchoolType {
@@ -348,4 +370,13 @@ enum StaffStatus {
 enum SubjectStatus {
   ACTIVE
   INACTIVE
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
 }
