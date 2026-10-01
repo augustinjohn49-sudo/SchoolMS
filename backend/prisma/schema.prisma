@@ -96,6 +96,7 @@ model AcademicYear {
   terms              Term[]
   classes            Class[]
   studentEnrollments StudentEnrollment[]
+  attendanceRecords Attendance[]
 
   @@unique([schoolId, name])
   @@index([schoolId])
@@ -119,8 +120,8 @@ model Student {
   updatedAt       DateTime      @updatedAt
 
   school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
   enrollments StudentEnrollment[]
+  attendanceRecords Attendance[]
 
   @@unique([schoolId, admissionNumber])
   @@index([schoolId])
@@ -162,6 +163,7 @@ model Term {
   updatedAt      DateTime   @updatedAt
 
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  attendanceRecords Attendance[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -181,6 +183,7 @@ model Class {
   studentEnrollments StudentEnrollment[]
   classSubjects ClassSubject[]
   timetableEntries  TimetableEntry[]
+  attendanceRecords Attendance[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -270,6 +273,39 @@ model TimetableEntry {
   @@index([classId])
   @@index([teacherClassSubjectId])
   @@index([dayOfWeek])
+}
+
+model Attendance {
+  id             String           @id @default(uuid())
+  studentId      String
+  academicYearId String
+  termId         String?
+  classId        String
+  date           DateTime
+  status         AttendanceStatus
+  remarks        String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  term         Term?        @relation(fields: [termId], references: [id], onDelete: SetNull)
+  class        Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date])
+  @@index([studentId])
+  @@index([academicYearId])
+  @@index([termId])
+  @@index([classId])
+  @@index([date])
+  @@index([status])
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
 }
 
 enum SchoolType {
