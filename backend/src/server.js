@@ -18,6 +18,7 @@ import classSubjectRoutes from "./routes/classSubjectRoutes.js";
 import teacherClassSubjectRoutes from "./routes/teacherClassSubjectRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
+import examRoutes from "./routes/examRoutes.js";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/class-subjects", classSubjectRoutes);
 app.use("/api/teacher-class-subjects", teacherClassSubjectRoutes);
 app.use("/api/timetable", timetableRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/exams", examRoutes); // Exam routes
 
 // Start server
 async function startServer() {
