@@ -10,6 +10,12 @@ import {
   deleteExamController,
 } from "../controllers/examController.js";
 
+import {
+  assignSubjectToExamController,
+  getExamSubjectsController,
+  removeSubjectFromExamController,
+} from "../controllers/examSubjectController.js";
+
 const router = express.Router();
 
 router.post(
@@ -24,6 +30,27 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getExamsController,
+);
+
+router.post(
+  "/:examId/subjects",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  assignSubjectToExamController,
+);
+
+router.get(
+  "/:examId/subjects",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getExamSubjectsController,
+);
+
+router.delete(
+  "/:examId/subjects/:examSubjectId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  removeSubjectFromExamController,
 );
 
 router.get(

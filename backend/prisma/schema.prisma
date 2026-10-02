@@ -73,8 +73,8 @@ model Staff {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  school             School                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user               User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
   teacherAssignments TeacherClassSubject[]
 
   @@unique([schoolId, staffNumber])
@@ -97,7 +97,7 @@ model AcademicYear {
   terms              Term[]
   classes            Class[]
   studentEnrollments StudentEnrollment[]
-  attendanceRecords Attendance[]
+  attendanceRecords  Attendance[]
   exams              Exam[]
 
   @@unique([schoolId, name])
@@ -121,8 +121,8 @@ model Student {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  enrollments StudentEnrollment[]
+  school            School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  enrollments       StudentEnrollment[]
   attendanceRecords Attendance[]
 
   @@unique([schoolId, admissionNumber])
@@ -164,9 +164,9 @@ model Term {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  academicYear      AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   attendanceRecords Attendance[]
-  exams              Exam[]
+  exams             Exam[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -186,15 +186,31 @@ model Exam {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  school       School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  term         Term         @relation(fields: [termId], references: [id], onDelete: Cascade)
+  school       School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  term         Term          @relation(fields: [termId], references: [id], onDelete: Cascade)
+  subjects     ExamSubject[]
 
   @@unique([schoolId, academicYearId, name])
   @@index([schoolId])
   @@index([academicYearId])
   @@index([termId])
   @@index([status])
+}
+
+model ExamSubject {
+  id             String   @id @default(uuid())
+  examId         String
+  classSubjectId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  exam         Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  classSubject ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, classSubjectId])
+  @@index([examId])
+  @@index([classSubjectId])
 }
 
 model Class {
@@ -208,9 +224,9 @@ model Class {
   academicYear       AcademicYear        @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   streams            Stream[]
   studentEnrollments StudentEnrollment[]
-  classSubjects ClassSubject[]
-  timetableEntries  TimetableEntry[]
-  attendanceRecords Attendance[]
+  classSubjects      ClassSubject[]
+  timetableEntries   TimetableEntry[]
+  attendanceRecords  Attendance[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -241,7 +257,7 @@ model Subject {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  school        School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   classSubjects ClassSubject[]
 
   @@unique([schoolId, name])
@@ -257,9 +273,10 @@ model ClassSubject {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
-  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  class              Class                 @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject            Subject               @relation(fields: [subjectId], references: [id], onDelete: Cascade)
   teacherAssignments TeacherClassSubject[]
+  examSubjects       ExamSubject[]
 
   @@unique([classId, subjectId])
   @@index([classId])
@@ -273,9 +290,9 @@ model TeacherClassSubject {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  staff        Staff        @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  classSubject ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
-  timetableEntries  TimetableEntry[]
+  staff            Staff            @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  classSubject     ClassSubject     @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+  timetableEntries TimetableEntry[]
 
   @@unique([staffId, classSubjectId])
   @@index([staffId])
@@ -283,18 +300,18 @@ model TeacherClassSubject {
 }
 
 model TimetableEntry {
-  id                  String   @id @default(uuid())
-  classId             String
+  id                    String   @id @default(uuid())
+  classId               String
   teacherClassSubjectId String
-  dayOfWeek           Int
-  startTime           String
-  endTime             String
-  room                String?
-  notes               String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  dayOfWeek             Int
+  startTime             String
+  endTime               String
+  room                  String?
+  notes                 String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  class               Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  class               Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
   teacherClassSubject TeacherClassSubject @relation(fields: [teacherClassSubjectId], references: [id], onDelete: Cascade)
 
   @@index([classId])
