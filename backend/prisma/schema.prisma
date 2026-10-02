@@ -124,6 +124,7 @@ model Student {
   school            School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   enrollments       StudentEnrollment[]
   attendanceRecords Attendance[]
+  examResults       ExamResult[]
 
   @@unique([schoolId, admissionNumber])
   @@index([schoolId])
@@ -207,10 +208,29 @@ model ExamSubject {
 
   exam         Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
   classSubject ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+  results      ExamResult[]
 
   @@unique([examId, classSubjectId])
   @@index([examId])
   @@index([classSubjectId])
+}
+
+model ExamResult {
+  id            String   @id @default(uuid())
+  studentId     String
+  examSubjectId String
+  marks         Decimal
+  maxMarks      Decimal
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  examSubject ExamSubject @relation(fields: [examSubjectId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, examSubjectId])
+  @@index([studentId])
+  @@index([examSubjectId])
 }
 
 model Class {

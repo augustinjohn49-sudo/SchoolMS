@@ -16,6 +16,14 @@ import {
   removeSubjectFromExamController,
 } from "../controllers/examSubjectController.js";
 
+import {
+  createExamResultController,
+  getExamResultsController,
+  getExamResultByIdController,
+  updateExamResultController,
+  deleteExamResultController,
+} from "../controllers/examResultController.js";
+
 const router = express.Router();
 
 router.post(
@@ -51,6 +59,41 @@ router.delete(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   removeSubjectFromExamController,
+);
+
+router.post(
+  "/:examId/results",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  createExamResultController,
+);
+
+router.get(
+  "/:examId/results",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getExamResultsController,
+);
+
+router.get(
+  "/:examId/results/:examResultId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  getExamResultByIdController,
+);
+
+router.patch(
+  "/:examId/results/:examResultId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  updateExamResultController,
+);
+
+router.delete(
+  "/:examId/results/:examResultId",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  deleteExamResultController,
 );
 
 router.get(
