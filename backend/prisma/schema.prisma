@@ -32,6 +32,7 @@ model School {
   academicYears AcademicYear[]
   subjects      Subject[]
   exams         Exam[]
+  gradingScales GradingScale[]
 }
 
 model User {
@@ -231,6 +232,39 @@ model ExamResult {
   @@unique([studentId, examSubjectId])
   @@index([studentId])
   @@index([examSubjectId])
+}
+
+model GradingScale {
+  id          String   @id @default(uuid())
+  schoolId    String
+  name        String
+  description String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  grades Grade[]
+
+  @@unique([schoolId, name])
+  @@index([schoolId])
+  @@index([isDefault])
+}
+
+model Grade {
+  id            String   @id @default(uuid())
+  gradingScaleId String
+  name          String
+  minPercentage Decimal
+  maxPercentage Decimal
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  gradingScale GradingScale @relation(fields: [gradingScaleId], references: [id], onDelete: Cascade)
+
+  @@unique([gradingScaleId, name])
+  @@index([gradingScaleId])
 }
 
 model Class {
