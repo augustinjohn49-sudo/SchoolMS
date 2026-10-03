@@ -19,6 +19,8 @@ import teacherClassSubjectRoutes from "./routes/teacherClassSubjectRoutes.js";
 import timetableRoutes from "./routes/timetableRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import examRoutes from "./routes/examRoutes.js";
+import gradingScaleRoutes from "./routes/gradingScaleRoutes.js";
+import gradeRoutes from "./routes/gradeRoutes.js";
 
 const app = express();
 
@@ -53,6 +55,8 @@ app.use("/api/teacher-class-subjects", teacherClassSubjectRoutes);
 app.use("/api/timetable", timetableRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/exams", examRoutes); // Exam routes
+app.use("/api/grading-scales", gradingScaleRoutes); // Grading Scale routes
+app.use("/api/grading-scales", gradeRoutes); // Grade routes
 
 // Start server
 async function startServer() {
