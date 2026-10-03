@@ -100,6 +100,7 @@ model AcademicYear {
   studentEnrollments StudentEnrollment[]
   attendanceRecords  Attendance[]
   exams              Exam[]
+  reportCards        ReportCard[]
 
   @@unique([schoolId, name])
   @@index([schoolId])
@@ -147,6 +148,7 @@ model StudentEnrollment {
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   class        Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
   stream       Stream?      @relation(fields: [streamId], references: [id], onDelete: SetNull)
+  reportCards  ReportCard[]
 
   @@unique([studentId, academicYearId])
   @@index([studentId])
@@ -169,6 +171,7 @@ model Term {
   academicYear      AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   attendanceRecords Attendance[]
   exams             Exam[]
+  reportCards       ReportCard[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -226,8 +229,9 @@ model ExamResult {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  examSubject ExamSubject @relation(fields: [examSubjectId], references: [id], onDelete: Cascade)
+  student            Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  examSubject        ExamSubject         @relation(fields: [examSubjectId], references: [id], onDelete: Cascade)
+  reportCardSubjects ReportCardSubject[]
 
   @@unique([studentId, examSubjectId])
   @@index([studentId])
@@ -243,8 +247,9 @@ model GradingScale {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  school School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  grades Grade[]
+  school      School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  grades      Grade[]
+  reportCards ReportCard[]
 
   @@unique([schoolId, name])
   @@index([schoolId])
@@ -252,14 +257,14 @@ model GradingScale {
 }
 
 model Grade {
-  id            String   @id @default(uuid())
+  id             String   @id @default(uuid())
   gradingScaleId String
-  name          String
-  minPercentage Decimal
-  maxPercentage Decimal
-  remarks       String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  name           String
+  minPercentage  Decimal
+  maxPercentage  Decimal
+  remarks        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   gradingScale GradingScale @relation(fields: [gradingScaleId], references: [id], onDelete: Cascade)
 
@@ -397,6 +402,62 @@ model Attendance {
   @@index([classId])
   @@index([date])
   @@index([status])
+}
+
+model ReportCard {
+  id                  String    @id @default(uuid())
+  studentEnrollmentId String
+  academicYearId      String
+  termId              String
+  gradingScaleId      String
+  title               String?
+  overallRemarks      String?
+  classTeacherComment String?
+  headTeacherComment  String?
+  generatedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  studentEnrollment StudentEnrollment   @relation(fields: [studentEnrollmentId], references: [id], onDelete: Cascade)
+  academicYear      AcademicYear        @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  term              Term                @relation(fields: [termId], references: [id], onDelete: Cascade)
+  gradingScale      GradingScale        @relation(fields: [gradingScaleId], references: [id], onDelete: Restrict)
+  status ReportCardStatus @default(DRAFT)
+  subjects          ReportCardSubject[]
+
+  @@unique([studentEnrollmentId, termId])
+  @@index([studentEnrollmentId])
+  @@index([academicYearId])
+  @@index([termId])
+  @@index([gradingScaleId])
+}
+
+model ReportCardSubject {
+  id           String   @id @default(uuid())
+  reportCardId String
+  examResultId String
+  subjectName  String
+  marks        Decimal
+  maxMarks     Decimal
+  percentage   Decimal
+  gradeName    String?
+  gradeRemarks String?
+  remarks      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reportCard ReportCard @relation(fields: [reportCardId], references: [id], onDelete: Cascade)
+  examResult ExamResult @relation(fields: [examResultId], references: [id], onDelete: Restrict)
+
+  @@unique([reportCardId, examResultId])
+  @@index([reportCardId])
+  @@index([examResultId])
+}
+
+enum ReportCardStatus {
+  DRAFT
+  APPROVED
+  PUBLISHED
 }
 
 enum ExamStatus {

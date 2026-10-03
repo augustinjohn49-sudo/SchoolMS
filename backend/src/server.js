@@ -21,6 +21,7 @@ import attendanceRoutes from "./routes/attendanceRoutes.js";
 import examRoutes from "./routes/examRoutes.js";
 import gradingScaleRoutes from "./routes/gradingScaleRoutes.js";
 import gradeRoutes from "./routes/gradeRoutes.js";
+import reportCardRoutes from "./routes/reportCardRoutes.js";
 
 const app = express();
 
@@ -56,7 +57,8 @@ app.use("/api/timetable", timetableRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/exams", examRoutes); // Exam routes
 app.use("/api/grading-scales", gradingScaleRoutes); // Grading Scale routes
-app.use("/api/grading-scales", gradeRoutes); // Grade routes
+app.use("/api/grades", gradeRoutes); // Grade routes
+app.use("/api/report-cards", reportCardRoutes);
 
 // Start server
 async function startServer() {
