@@ -23,6 +23,7 @@ import gradingScaleRoutes from "./routes/gradingScaleRoutes.js";
 import gradeRoutes from "./routes/gradeRoutes.js";
 import reportCardRoutes from "./routes/reportCardRoutes.js";
 import parentGuardianRoutes from "./routes/parentGuardianRoutes.js";
+import announcementRoutes from "./routes/announcementRoutes.js";
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use("/api/grading-scales", gradingScaleRoutes); // Grading Scale routes
 app.use("/api/grades", gradeRoutes); // Grade routes
 app.use("/api/report-cards", reportCardRoutes);
 app.use("/api/parent-guardians", parentGuardianRoutes); // Parent/Guardian routes
+app.use("/api/announcements", announcementRoutes); // Announcement routes
 
 // Start server
 async function startServer() {

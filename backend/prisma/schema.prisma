@@ -34,6 +34,7 @@ model School {
   exams           Exam[]
   gradingScales   GradingScale[]
   parentGuardians ParentGuardian[]
+  announcements   Announcement[]
 }
 
 model User {
@@ -48,9 +49,11 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  school         School?         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  staff          Staff?
-  parentGuardian ParentGuardian?
+  school                 School?                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  staff                  Staff?
+  parentGuardian         ParentGuardian?
+  createdAnnouncements   Announcement[]
+  announcementRecipients AnnouncementRecipient[]
 
   @@index([schoolId])
   @@index([role])
@@ -499,6 +502,58 @@ model ReportCardSubject {
   @@unique([reportCardId, examResultId])
   @@index([reportCardId])
   @@index([examResultId])
+}
+
+model Announcement {
+  id              String               @id @default(uuid())
+  schoolId        String
+  createdByUserId String
+  title           String
+  content         String
+  audience        AnnouncementAudience
+  status          AnnouncementStatus   @default(DRAFT)
+  publishedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  school     School                  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  creator    User                    @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  recipients AnnouncementRecipient[]
+
+  @@index([schoolId])
+  @@index([createdByUserId])
+  @@index([status])
+  @@index([audience])
+}
+
+model AnnouncementRecipient {
+  id             String    @id @default(uuid())
+  announcementId String
+  userId         String
+  isRead         Boolean   @default(false)
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId])
+  @@index([announcementId])
+  @@index([userId])
+  @@index([isRead])
+}
+
+enum AnnouncementAudience {
+  ALL
+  TEACHERS
+  PARENTS
+  STUDENTS
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
 enum ParentGuardianStatus {
