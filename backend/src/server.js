@@ -25,6 +25,7 @@ import reportCardRoutes from "./routes/reportCardRoutes.js";
 import parentGuardianRoutes from "./routes/parentGuardianRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import messagingRoutes from "./routes/messagingRoutes.js";
 
 const app = express();
 
@@ -64,7 +65,8 @@ app.use("/api/grades", gradeRoutes); // Grade routes
 app.use("/api/report-cards", reportCardRoutes);
 app.use("/api/parent-guardians", parentGuardianRoutes); // Parent/Guardian routes
 app.use("/api/announcements", announcementRoutes); // Announcement routes
-app.use("/api/notifications", notificationRoutes);
+app.use("/api/notifications", notificationRoutes); // Notification routes
+app.use("/api/messaging", messagingRoutes); // Messaging routes
 
 // Start server
 async function startServer() {
