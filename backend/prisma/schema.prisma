@@ -35,6 +35,7 @@ model School {
   gradingScales   GradingScale[]
   parentGuardians ParentGuardian[]
   announcements   Announcement[]
+  notifications   Notification[]
 }
 
 model User {
@@ -54,6 +55,7 @@ model User {
   parentGuardian         ParentGuardian?
   createdAnnouncements   Announcement[]
   announcementRecipients AnnouncementRecipient[]
+  notificationRecipients NotificationRecipient[]
 
   @@index([schoolId])
   @@index([role])
@@ -541,6 +543,51 @@ model AnnouncementRecipient {
   @@index([announcementId])
   @@index([userId])
   @@index([isRead])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  schoolId  String
+  title     String
+  message   String
+  type      NotificationType
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  school     School                  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  recipients NotificationRecipient[]
+
+  @@index([schoolId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model NotificationRecipient {
+  id             String    @id @default(uuid())
+  notificationId String
+  userId         String
+  isRead         Boolean   @default(false)
+  readAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, userId])
+  @@index([notificationId])
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  ANNOUNCEMENT
+  ATTENDANCE
+  EXAM
+  RESULT
+  FEE
+  GENERAL
 }
 
 enum AnnouncementAudience {
