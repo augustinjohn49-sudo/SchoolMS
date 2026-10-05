@@ -35,6 +35,7 @@ import feeAdjustmentRoutes from "./routes/feeAdjustmentRoutes.js";
 import financeReportRoutes from "./routes/financeReportRoutes.js";
 import enrollmentReportRoutes from "./routes/enrollmentReportRoutes.js";
 import attendanceReportRoutes from "./routes/attendanceReportRoutes.js";
+import studentPerformanceReportRoutes from "./routes/studentPerformanceReportRoutes.js";
 
 const app = express();
 
@@ -85,6 +86,7 @@ app.use("/api/fee-adjustments", feeAdjustmentRoutes); // Fee Adjustment routes
 app.use("/api/finance/reports", financeReportRoutes);
 app.use("/api/school-reports", enrollmentReportRoutes);
 app.use("/api/school-reports", attendanceReportRoutes);
+app.use("/api/school-reports", studentPerformanceReportRoutes);
 
 // Start server
 async function startServer() {
