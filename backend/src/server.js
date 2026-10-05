@@ -26,6 +26,13 @@ import parentGuardianRoutes from "./routes/parentGuardianRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import messagingRoutes from "./routes/messagingRoutes.js";
+import feeStructureRoutes from "./routes/feeStructureRoutes.js";
+import studentFeeChargeRoutes from "./routes/studentFeeChargeRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import paymentAllocationRoutes from "./routes/paymentAllocationRoutes.js";
+import studentFeeAccountRoutes from "./routes/studentFeeAccountRoutes.js";
+import feeAdjustmentRoutes from "./routes/feeAdjustmentRoutes.js";
+import financeReportRoutes from "./routes/financeReportRoutes.js";
 
 const app = express();
 
@@ -67,6 +74,13 @@ app.use("/api/parent-guardians", parentGuardianRoutes); // Parent/Guardian route
 app.use("/api/announcements", announcementRoutes); // Announcement routes
 app.use("/api/notifications", notificationRoutes); // Notification routes
 app.use("/api/messaging", messagingRoutes); // Messaging routes
+app.use("/api/fee-structures", feeStructureRoutes); // Fee Structure routes
+app.use("/api/student-fee-charges", studentFeeChargeRoutes); // Student Fee Charge routes
+app.use("/api/payments", paymentRoutes);
+app.use("/api/payment-allocations", paymentAllocationRoutes); // Payment Allocation routes
+app.use("/api/student-fee-accounts", studentFeeAccountRoutes); // Student Fee Account routes
+app.use("/api/fee-adjustments", feeAdjustmentRoutes); // Fee Adjustment routes
+app.use("/api/finance/reports", financeReportRoutes);
 
 // Start server
 async function startServer() {

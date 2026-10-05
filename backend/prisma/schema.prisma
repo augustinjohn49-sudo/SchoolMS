@@ -37,6 +37,8 @@ model School {
   announcements   Announcement[]
   notifications   Notification[]
   conversations   Conversation[]
+  feeStructures   FeeStructure[]
+  payments        Payment[]
 }
 
 model User {
@@ -59,6 +61,8 @@ model User {
   notificationRecipients   NotificationRecipient[]
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]
+  receivedPayments         Payment[]
+  feeAdjustments           FeeAdjustment[]
 
   @@index([schoolId])
   @@index([role])
@@ -111,6 +115,7 @@ model AcademicYear {
   attendanceRecords  Attendance[]
   exams              Exam[]
   reportCards        ReportCard[]
+  feeStructures      FeeStructure[]
 
   @@unique([schoolId, name])
   @@index([schoolId])
@@ -199,11 +204,13 @@ model StudentEnrollment {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
-  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  class        Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
-  stream       Stream?      @relation(fields: [streamId], references: [id], onDelete: SetNull)
+  student      Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear       @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  class        Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  stream       Stream?            @relation(fields: [streamId], references: [id], onDelete: SetNull)
   reportCards  ReportCard[]
+  feeCharges   StudentFeeCharge[]
+  payments     Payment[]
 
   @@unique([studentId, academicYearId])
   @@index([studentId])
@@ -223,10 +230,11 @@ model Term {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  academicYear      AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  academicYear      AcademicYear   @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   attendanceRecords Attendance[]
   exams             Exam[]
   reportCards       ReportCard[]
+  feeStructures     FeeStructure[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -341,6 +349,7 @@ model Class {
   classSubjects      ClassSubject[]
   timetableEntries   TimetableEntry[]
   attendanceRecords  Attendance[]
+  feeStructures      FeeStructure[]
 
   @@unique([academicYearId, name])
   @@index([academicYearId])
@@ -353,9 +362,9 @@ model Stream {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
-
+  class              Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
   studentEnrollments StudentEnrollment[]
+  feeStructures      FeeStructure[]
 
   @@unique([classId, name])
   @@index([classId])
@@ -627,6 +636,178 @@ model Message {
   @@index([conversationId])
   @@index([senderUserId])
   @@index([createdAt])
+}
+
+model FeeStructure {
+  id             String             @id @default(uuid())
+  schoolId       String
+  academicYearId String
+  termId         String
+  classId        String
+  streamId       String?
+  name           String
+  description    String?
+  status         FeeStructureStatus @default(DRAFT)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  school       School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  term         Term         @relation(fields: [termId], references: [id], onDelete: Cascade)
+  class        Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  stream       Stream?      @relation(fields: [streamId], references: [id], onDelete: SetNull)
+
+  items FeeStructureItem[]
+
+  @@unique([schoolId, academicYearId, termId, classId, streamId, name])
+  @@index([schoolId])
+  @@index([academicYearId])
+  @@index([termId])
+  @@index([classId])
+  @@index([streamId])
+  @@index([status])
+}
+
+model FeeStructureItem {
+  id             String      @id @default(uuid())
+  feeStructureId String
+  name           String
+  type           FeeItemType
+  amount         Decimal
+  description    String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  feeStructure FeeStructure       @relation(fields: [feeStructureId], references: [id], onDelete: Cascade)
+  charges      StudentFeeCharge[]
+
+  @@unique([feeStructureId, name])
+  @@index([feeStructureId])
+  @@index([type])
+}
+
+model StudentFeeCharge {
+  id                  String    @id @default(uuid())
+  studentEnrollmentId String
+  feeStructureItemId  String?
+  name                String
+  amount              Decimal
+  dueDate             DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  studentEnrollment StudentEnrollment   @relation(fields: [studentEnrollmentId], references: [id], onDelete: Cascade)
+  feeStructureItem  FeeStructureItem?   @relation(fields: [feeStructureItemId], references: [id], onDelete: SetNull)
+  allocations       PaymentAllocation[]
+  adjustments       FeeAdjustment[]
+
+  @@index([studentEnrollmentId])
+  @@index([feeStructureItemId])
+  @@index([dueDate])
+}
+
+model Payment {
+  id                  String        @id @default(uuid())
+  schoolId            String
+  studentEnrollmentId String
+  receivedByUserId    String
+  amount              Decimal
+  method              PaymentMethod
+  reference           String?
+  status              PaymentStatus @default(COMPLETED)
+  paymentDate         DateTime      @default(now())
+  notes               String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  school            School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentEnrollment StudentEnrollment   @relation(fields: [studentEnrollmentId], references: [id], onDelete: Cascade)
+  receivedBy        User                @relation(fields: [receivedByUserId], references: [id], onDelete: Restrict)
+  allocations       PaymentAllocation[]
+
+  @@unique([schoolId, reference])
+  @@index([schoolId])
+  @@index([studentEnrollmentId])
+  @@index([receivedByUserId])
+  @@index([method])
+  @@index([status])
+  @@index([paymentDate])
+}
+
+model PaymentAllocation {
+  id                 String   @id @default(uuid())
+  paymentId          String
+  studentFeeChargeId String
+  amount             Decimal
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  payment          Payment          @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  studentFeeCharge StudentFeeCharge @relation(fields: [studentFeeChargeId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentId, studentFeeChargeId])
+  @@index([paymentId])
+  @@index([studentFeeChargeId])
+}
+
+model FeeAdjustment {
+  id                 String         @id @default(uuid())
+  studentFeeChargeId String
+  type               AdjustmentType
+  amount             Decimal
+  reason             String
+  createdByUserId    String
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  studentFeeCharge StudentFeeCharge @relation(fields: [studentFeeChargeId], references: [id], onDelete: Cascade)
+  createdBy        User             @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([studentFeeChargeId])
+  @@index([createdByUserId])
+  @@index([type])
+}
+
+enum FeeItemType {
+  TUITION
+  TRANSPORT
+  MEALS
+  BOARDING
+  ACTIVITY
+  EXAMINATION
+  REGISTRATION
+  OTHER
+}
+
+enum FeeStructureStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum PaymentMethod {
+  CASH
+  MPESA
+  BANK_TRANSFER
+  CARD
+  PAYPAL
+  PESAPAL
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum AdjustmentType {
+  DEBIT
+  CREDIT
+  REFUND
+  CORRECTION
 }
 
 enum NotificationType {
