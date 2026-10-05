@@ -33,6 +33,8 @@ import paymentAllocationRoutes from "./routes/paymentAllocationRoutes.js";
 import studentFeeAccountRoutes from "./routes/studentFeeAccountRoutes.js";
 import feeAdjustmentRoutes from "./routes/feeAdjustmentRoutes.js";
 import financeReportRoutes from "./routes/financeReportRoutes.js";
+import enrollmentReportRoutes from "./routes/enrollmentReportRoutes.js";
+import attendanceReportRoutes from "./routes/attendanceReportRoutes.js";
 
 const app = express();
 
@@ -81,6 +83,8 @@ app.use("/api/payment-allocations", paymentAllocationRoutes); // Payment Allocat
 app.use("/api/student-fee-accounts", studentFeeAccountRoutes); // Student Fee Account routes
 app.use("/api/fee-adjustments", feeAdjustmentRoutes); // Fee Adjustment routes
 app.use("/api/finance/reports", financeReportRoutes);
+app.use("/api/school-reports", enrollmentReportRoutes);
+app.use("/api/school-reports", attendanceReportRoutes);
 
 // Start server
 async function startServer() {
