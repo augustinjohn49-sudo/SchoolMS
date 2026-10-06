@@ -37,6 +37,7 @@ import enrollmentReportRoutes from "./routes/enrollmentReportRoutes.js";
 import attendanceReportRoutes from "./routes/attendanceReportRoutes.js";
 import studentPerformanceReportRoutes from "./routes/studentPerformanceReportRoutes.js";
 import staffReportRoutes from "./routes/staffReportRoutes.js";
+import subjectReportRoutes from "./routes/subjectReportRoutes.js";
 
 const app = express();
 
@@ -89,6 +90,7 @@ app.use("/api/school-reports", enrollmentReportRoutes);
 app.use("/api/school-reports", attendanceReportRoutes);
 app.use("/api/school-reports", studentPerformanceReportRoutes);
 app.use("/api/school-reports", staffReportRoutes);
+app.use("/api/school-reports", subjectReportRoutes);
 
 // Start server
 async function startServer() {
