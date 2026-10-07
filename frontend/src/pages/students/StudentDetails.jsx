@@ -381,13 +381,18 @@ export default function StudentDetails() {
   }
 
   async function handleDeleteEnrollment(enrollment) {
+    if (enrollment.status === "ACTIVE") {
+      setEnrollmentError(
+        "An active student enrollment cannot be deleted. Change the enrollment status first.",
+      );
+      return;
+    }
+
     const confirmed = window.confirm(
       "Are you sure you want to delete this enrollment record? This action cannot be undone.",
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     try {
       setEnrollmentLoading(true);
@@ -396,7 +401,6 @@ export default function StudentDetails() {
       await deleteStudentEnrollment(enrollment.id);
 
       const response = await getStudentEnrollmentHistory(studentId);
-
       setEnrollments(response.data || []);
     } catch (error) {
       console.error("Failed to delete enrollment:", error);
@@ -828,6 +832,10 @@ export default function StudentDetails() {
             <p>Academic enrollment records for this student.</p>
           </div>
         </div>
+
+        {enrollmentError && (
+          <div className="student-details-error">{enrollmentError}</div>
+        )}
 
         {enrollmentsLoading ? (
           <div className="student-details-loading">
