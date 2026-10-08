@@ -1,8 +1,18 @@
 import "./Students.css";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Search, UserPlus, ChevronLeft, ChevronRight } from "lucide-react";
-import { getStudents, createStudent } from "../../services/studentService.js";
+import {
+  getStudents,
+  createStudent,
+  updateStudent,
+} from "../../services/studentService.js";
+import {
+  Search,
+  UserPlus,
+  ChevronLeft,
+  ChevronRight,
+  RefreshCw,
+} from "lucide-react";
 
 export default function Students() {
   const [students, setStudents] = useState([]);
@@ -35,6 +45,9 @@ export default function Students() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
 
+  const [statusUpdatingStudentId, setStatusUpdatingStudentId] = useState(null);
+  const [statusUpdateError, setStatusUpdateError] = useState("");
+
   async function loadStudents() {
     try {
       setLoading(true);
@@ -62,17 +75,6 @@ export default function Students() {
     loadStudents();
   }, [pagination.page, pagination.limit, status]);
 
-  // function handleSearchSubmit(event) {
-  //   event.preventDefault();
-
-  //   setPagination((current) => ({
-  //     ...current,
-  //     page: 1,
-  //   }));
-
-  //   loadStudents();
-  // }
-
   function handleSearchSubmit(event) {
     event.preventDefault();
 
@@ -89,6 +91,31 @@ export default function Students() {
       ...current,
       page: 1,
     }));
+  }
+
+  async function handleStudentStatusChange(student, newStatus) {
+    if (!newStatus || newStatus === student.status) {
+      return;
+    }
+
+    try {
+      setStatusUpdatingStudentId(student.id);
+      setStatusUpdateError("");
+
+      await updateStudent(student.id, {
+        status: newStatus,
+      });
+
+      await loadStudents();
+    } catch (err) {
+      console.error("Failed to update student status:", err);
+
+      setStatusUpdateError(
+        err.response?.data?.message || "Unable to update student status.",
+      );
+    } finally {
+      setStatusUpdatingStudentId(null);
+    }
   }
 
   function goToPreviousPage() {
@@ -241,10 +268,17 @@ export default function Students() {
           <option value="">All statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
+          <option value="GRADUATED">Graduated</option>
+          <option value="TRANSFERRED">Transferred</option>
+          <option value="SUSPENDED">Suspended</option>
         </select>
       </section>
 
       {error && <div className="dashboard-error">{error}</div>}
+
+      {statusUpdateError && (
+        <div className="dashboard-error">{statusUpdateError}</div>
+      )}
 
       <section className="students-table-card">
         <div className="students-table-wrapper">
@@ -297,12 +331,40 @@ export default function Students() {
                       </span>
                     </td>
                     <td>
-                      <Link
-                        to={`/students/${student.id}`}
-                        className="student-view-link"
-                      >
-                        View
-                      </Link>
+                      <div className="student-actions">
+                        <Link
+                          to={`/students/${student.id}`}
+                          className="student-view-link"
+                        >
+                          View
+                        </Link>
+
+                        <select
+                          className="student-status-action"
+                          value={student.status}
+                          onChange={(event) =>
+                            handleStudentStatusChange(
+                              student,
+                              event.target.value,
+                            )
+                          }
+                          disabled={statusUpdatingStudentId === student.id}
+                          aria-label={`Change status for ${formatStudentName(student)}`}
+                        >
+                          <option value="ACTIVE">Active</option>
+                          <option value="INACTIVE">Inactive</option>
+                          <option value="GRADUATED">Graduated</option>
+                          <option value="TRANSFERRED">Transferred</option>
+                          <option value="SUSPENDED">Suspended</option>
+                        </select>
+
+                        {statusUpdatingStudentId === student.id && (
+                          <RefreshCw
+                            size={16}
+                            className="student-status-loading"
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

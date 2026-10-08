@@ -374,3 +374,38 @@
     width: 100%;
   }
 }
+
+.student-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-status-action {
+  min-width: 125px;
+  padding: 7px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.student-status-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.student-status-loading {
+  animation: student-status-spin 1s linear infinite;
+}
+
+@keyframes student-status-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
