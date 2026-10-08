@@ -409,3 +409,14 @@
     transform: rotate(360deg);
   }
 }
+
+.student-edit-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.student-edit-link:hover {
+  text-decoration: underline;
+}

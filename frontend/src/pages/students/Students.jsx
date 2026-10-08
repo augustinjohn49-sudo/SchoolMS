@@ -339,6 +339,13 @@ export default function Students() {
                           View
                         </Link>
 
+                        <Link
+                          to={`/students/${student.id}?edit=true`}
+                          className="student-edit-link"
+                        >
+                          Edit
+                        </Link>
+
                         <select
                           className="student-status-action"
                           value={student.status}

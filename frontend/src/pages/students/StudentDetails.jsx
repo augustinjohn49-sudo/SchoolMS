@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Mail, MapPin, Phone, UserRound } from "lucide-react";
 
 import {
@@ -21,6 +21,7 @@ import "./StudentDetails.css";
 
 export default function StudentDetails() {
   const { studentId } = useParams();
+  const [searchParams] = useSearchParams();
 
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,25 @@ export default function StudentDetails() {
         const response = await getStudentById(studentId);
 
         setStudent(response.data);
+
+        if (searchParams.get("edit") === "true") {
+          setEditForm({
+            firstName: response.data.firstName || "",
+            middleName: response.data.middleName || "",
+            lastName: response.data.lastName || "",
+            dateOfBirth: response.data.dateOfBirth
+              ? response.data.dateOfBirth.slice(0, 10)
+              : "",
+            gender: response.data.gender || "",
+            phone: response.data.phone || "",
+            email: response.data.email || "",
+            address: response.data.address || "",
+            status: response.data.status || "",
+          });
+
+          setEditError("");
+          setEditing(true);
+        }
       } catch (err) {
         console.error("Failed to load student:", err);
 
@@ -112,7 +132,7 @@ export default function StudentDetails() {
 
     loadStudent();
     loadEnrollmentHistory();
-  }, [studentId]);
+  }, [studentId, searchParams]);
 
   async function loadAcademicYears() {
     try {
