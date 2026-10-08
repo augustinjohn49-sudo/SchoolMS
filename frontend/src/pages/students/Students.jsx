@@ -5,6 +5,7 @@ import {
   getStudents,
   createStudent,
   updateStudent,
+  deleteStudent,
 } from "../../services/studentService.js";
 import {
   Search,
@@ -117,6 +118,35 @@ export default function Students() {
       setStatusUpdatingStudentId(null);
     }
   }
+
+  const handleDeleteStudent = async (student) => {
+    const studentName = formatStudentName(student);
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${studentName}? This action cannot be undone.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteStudent(student.id);
+
+      setStudents((currentStudents) =>
+        currentStudents.filter(
+          (currentStudent) => currentStudent.id !== student.id,
+        ),
+      );
+    } catch (error) {
+      console.error("Delete student error:", error);
+
+      const message =
+        error.response?.data?.message || "Failed to delete student.";
+
+      window.alert(message);
+    }
+  };
 
   function goToPreviousPage() {
     setPagination((current) => ({
@@ -345,6 +375,14 @@ export default function Students() {
                         >
                           Edit
                         </Link>
+
+                        <button
+                          type="button"
+                          className="student-delete-link"
+                          onClick={() => handleDeleteStudent(student)}
+                        >
+                          Delete
+                        </button>
 
                         <select
                           className="student-status-action"

@@ -39,3 +39,8 @@ export async function updateStudent(studentId, studentData) {
 
   return response.data;
 }
+
+export async function deleteStudent(studentId) {
+  const response = await api.delete(`/students/${studentId}`);
+  return response.data;
+}

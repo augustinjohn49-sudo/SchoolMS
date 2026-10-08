@@ -343,6 +343,22 @@ export async function deleteStudent({ schoolId, studentId }) {
     throw error;
   }
 
+  const enrollmentResult = await pool.query(
+    `SELECT id
+   FROM "StudentEnrollment"
+   WHERE "studentId" = $1
+   LIMIT 1`,
+    [studentId],
+  );
+
+  if (enrollmentResult.rows.length > 0) {
+    const error = new Error(
+      "This student cannot be deleted because enrollment history exists. Change the student status instead.",
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
   const result = await pool.query(
     `DELETE FROM "Student"
      WHERE id = $1
