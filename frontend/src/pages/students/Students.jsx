@@ -1,6 +1,6 @@
 import "./Students.css";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getStudents,
   createStudent,
@@ -49,7 +49,7 @@ export default function Students() {
   const [statusUpdatingStudentId, setStatusUpdatingStudentId] = useState(null);
   const [statusUpdateError, setStatusUpdateError] = useState("");
 
-  async function loadStudents() {
+  const loadStudents = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -62,7 +62,7 @@ export default function Students() {
       });
 
       setStudents(response.data || []);
-      setPagination(response.pagination || pagination);
+      setPagination((current) => response.pagination || current);
     } catch (err) {
       console.error("Failed to load students:", err);
 
@@ -70,11 +70,11 @@ export default function Students() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [search, status, pagination.page, pagination.limit]);
 
   useEffect(() => {
     loadStudents();
-  }, [pagination.page, pagination.limit, status]);
+  }, [loadStudents]);
 
   function handleSearchSubmit(event) {
     event.preventDefault();
