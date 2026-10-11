@@ -19,3 +19,6 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local super-admin creation script containing private credentials
+/backend/src/services/create-super-admin.js
