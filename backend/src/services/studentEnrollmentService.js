@@ -688,22 +688,40 @@ export async function updateStudentEnrollment({
 
   const updatedStatus = status ?? existingEnrollment.status;
 
-  // Prevent closed enrollments from being reactivated.
+  // Reactivating a closed enrollment is allowed,
+  // but only if the student does not already have
+  // another ACTIVE enrollment.
+
   if (existingEnrollment.status !== "ACTIVE" && updatedStatus === "ACTIVE") {
-    const error = new Error(
-      "A completed, transferred, or withdrawn enrollment cannot be reactivated.",
+    const activeEnrollmentResult = await pool.query(
+      `SELECT id
+     FROM "StudentEnrollment"
+     WHERE "studentId" = $1
+       AND status = 'ACTIVE'
+       AND id <> $2
+     LIMIT 1`,
+      [existingEnrollment.studentId, enrollmentId],
     );
-    error.statusCode = 400;
-    throw error;
+
+    if (activeEnrollmentResult.rows.length > 0) {
+      const error = new Error(
+        "This student already has another active enrollment.",
+      );
+      error.statusCode = 409;
+      throw error;
+    }
   }
 
-  // Prevent closed enrollments from changing to another closed status.
+  // Closed enrollments cannot be changed directly
+  // from one closed status to another.
+
   if (
     existingEnrollment.status !== "ACTIVE" &&
-    updatedStatus !== existingEnrollment.status
+    updatedStatus !== existingEnrollment.status &&
+    updatedStatus !== "ACTIVE"
   ) {
     const error = new Error(
-      "A completed, transferred, or withdrawn enrollment cannot change to another status.",
+      "A completed, transferred, or withdrawn enrollment can only be reactivated.",
     );
     error.statusCode = 400;
     throw error;
@@ -767,6 +785,7 @@ export async function deleteStudentEnrollment({ schoolId, enrollmentId }) {
     `SELECT
       se.id,
       se."studentId",
+      se.status,
       s."schoolId"
     FROM "StudentEnrollment" se
     INNER JOIN "Student" s
@@ -787,6 +806,14 @@ export async function deleteStudentEnrollment({ schoolId, enrollmentId }) {
       "You do not have access to this student enrollment.",
     );
     error.statusCode = 403;
+    throw error;
+  }
+
+  if (existingResult.rows[0].status === "ACTIVE") {
+    const error = new Error(
+      "An active student enrollment cannot be deleted. Change the enrollment status first.",
+    );
+    error.statusCode = 400;
     throw error;
   }
 
