@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 
 import pool from "../config/prisma.js";
 
+// Creates a new stream for a given class
 export async function createStream({ schoolId, classId, name }) {
   const classResult = await pool.query(
     `
@@ -79,6 +80,7 @@ export async function createStream({ schoolId, classId, name }) {
   return result.rows[0];
 }
 
+// Retrieves all streams for a given class
 export async function getStreamsByClass({ schoolId, classId }) {
   const classResult = await pool.query(
     `
@@ -126,6 +128,7 @@ export async function getStreamsByClass({ schoolId, classId }) {
   return result.rows;
 }
 
+// Retrieves a stream by its ID
 export async function getStreamById({ schoolId, streamId }) {
   const result = await pool.query(
     `
@@ -164,6 +167,7 @@ export async function getStreamById({ schoolId, streamId }) {
   return stream;
 }
 
+// Updates a stream's name
 export async function updateStream({ schoolId, streamId, name }) {
   const streamResult = await pool.query(
     `
@@ -251,6 +255,7 @@ export async function updateStream({ schoolId, streamId, name }) {
   return result.rows[0];
 }
 
+// Deletes a stream by its ID
 export async function deleteStream({ schoolId, streamId }) {
   const result = await pool.query(
     `
