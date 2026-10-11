@@ -937,7 +937,7 @@ export default function ParentGuardians() {
               </thead>
 
               <tbody>
-                {guardians.map((guardian) => (
+                {paginatedGuardians.map((guardian) => (
                   <tr key={guardian.id}>
                     <td>{formatGuardianName(guardian) || "—"}</td>
                     <td>{guardian.phone || "—"}</td>
