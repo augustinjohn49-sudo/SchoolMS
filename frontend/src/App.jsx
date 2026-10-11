@@ -8,6 +8,7 @@ import Students from "./pages/students/Students.jsx";
 import StudentDetails from "./pages/students/StudentDetails.jsx";
 import ParentGuardians from "./pages/guardians/ParentGuardians.jsx";
 import GuardianDetails from "./pages/guardians/GuardianDetails.jsx";
+import GuardianLinkedStudents from "./pages/guardians/GuardianLinkedStudents.jsx";
 
 function PlaceholderPage({ title }) {
   return (
@@ -36,6 +37,11 @@ function App() {
             <Route
               path="/guardians/:parentGuardianId"
               element={<GuardianDetails />}
+            />
+
+            <Route
+              path="/guardians/:parentGuardianId/students"
+              element={<GuardianLinkedStudents />}
             />
 
             <Route

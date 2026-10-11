@@ -8,8 +8,6 @@ import {
   activateParentGuardian,
   deactivateParentGuardian,
   linkGuardianToStudent,
-  getGuardianStudents,
-  unlinkGuardianFromStudent,
 } from "../../services/parentGuardianService.js";
 import { getStudents } from "../../services/studentService.js";
 import "./Guardians.css";
@@ -51,11 +49,6 @@ export default function ParentGuardians() {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [selectedGuardian, setSelectedGuardian] = useState(null);
-
-  const [linkedStudents, setLinkedStudents] = useState([]);
-  const [showLinkedStudents, setShowLinkedStudents] = useState(false);
-  const [linkedStudentsLoading, setLinkedStudentsLoading] = useState(false);
-  const [linkedStudentsError, setLinkedStudentsError] = useState("");
 
   const [linkFormData, setLinkFormData] = useState({
     studentId: "",
@@ -186,63 +179,6 @@ export default function ParentGuardians() {
     setShowLinkForm(true);
 
     await loadStudents();
-  }
-
-  async function handleViewLinkedStudents(guardian) {
-    setSelectedGuardian(guardian);
-    setShowLinkedStudents(true);
-    setLinkedStudents([]);
-    setLinkedStudentsError("");
-
-    try {
-      setLinkedStudentsLoading(true);
-
-      const response = await getGuardianStudents(guardian.id);
-
-      const studentList = Array.isArray(response)
-        ? response
-        : response.students || response.data || [];
-
-      setLinkedStudents(studentList);
-    } catch (err) {
-      console.error("Failed to load linked students:", err);
-      setLinkedStudentsError(
-        err.response?.data?.message ||
-          "Unable to load students linked to this guardian.",
-      );
-    } finally {
-      setLinkedStudentsLoading(false);
-    }
-  }
-
-  async function handleUnlinkStudent(parentGuardianId, studentId) {
-    const confirmed = window.confirm(
-      "Are you sure you want to unlink this student from the parent/guardian?",
-    );
-
-    if (!confirmed) return;
-
-    try {
-      setLinkedStudentsError("");
-
-      await unlinkGuardianFromStudent(parentGuardianId, studentId);
-
-      setLinkedStudents((currentStudents) =>
-        currentStudents.filter((item) => {
-          const student = item.student || item;
-          return (item.studentId || student.id) !== studentId;
-        }),
-      );
-
-      setSuccessMessage("Student unlinked successfully.");
-    } catch (err) {
-      console.error("Failed to unlink student:", err);
-
-      setLinkedStudentsError(
-        err.response?.data?.message ||
-          "Unable to unlink this student. Please try again.",
-      );
-    }
   }
 
   async function handleLinkGuardianToStudent(event) {
@@ -650,96 +586,6 @@ export default function ParentGuardians() {
         </section>
       )}
 
-      {showLinkedStudents && selectedGuardian && (
-        <section className="guardian-form-container">
-          <div className="guardian-form-header">
-            <div>
-              <h2>Linked Students</h2>
-              <p>Parent/Guardian: {formatGuardianName(selectedGuardian)}</p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowLinkedStudents(false);
-                setSelectedGuardian(null);
-                setLinkedStudents([]);
-                setLinkedStudentsError("");
-              }}
-              disabled={linkedStudentsLoading}
-            >
-              Close
-            </button>
-          </div>
-
-          {linkedStudentsError && (
-            <div className="guardian-error-message" role="alert">
-              {linkedStudentsError}
-            </div>
-          )}
-
-          {linkedStudentsLoading ? (
-            <p>Loading linked students...</p>
-          ) : linkedStudents.length === 0 && !linkedStudentsError ? (
-            <p>This guardian has no linked students yet.</p>
-          ) : (
-            <div className="guardian-table-container">
-              <table className="guardian-table">
-                <thead>
-                  <tr>
-                    <th>Student Name</th>
-                    <th>Relationship</th>
-                    <th>Primary Contact</th>
-                    <th>Emergency Contact</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {linkedStudents.map((item) => {
-                    const student = item.student || item;
-                    const studentId = item.studentId || student.id;
-                    const relationship =
-                      item.relationship || item.guardianRelationship || "—";
-
-                    const studentName = [
-                      student.firstName,
-                      student.middleName,
-                      student.lastName,
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
-
-                    return (
-                      <tr key={item.id || student.id}>
-                        <td>{studentName || "Name unavailable"}</td>
-                        <td>{relationship.replaceAll("_", " ")}</td>
-                        <td>{item.isPrimary ? "Yes" : "No"}</td>
-                        <td>{item.isEmergencyContact ? "Yes" : "No"}</td>
-                        <td>
-                          <button
-                            type="button"
-                            className="guardian-unlink-button"
-                            onClick={() =>
-                              handleUnlinkStudent(
-                                selectedGuardian.id,
-                                studentId,
-                              )
-                            }
-                          >
-                            Unlink
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      )}
-
       {showLinkForm && selectedGuardian && (
         <section className="guardian-form-container">
           <div className="guardian-form-header">
@@ -993,13 +839,12 @@ export default function ParentGuardians() {
                           Link Student
                         </button>
 
-                        <button
-                          type="button"
+                        <Link
+                          to={`/guardians/${guardian.id}/students`}
                           className="guardian-view-students-button"
-                          onClick={() => handleViewLinkedStudents(guardian)}
                         >
-                          View Students
-                        </button>
+                          Manage Students
+                        </Link>
                       </div>
                     </td>
                   </tr>
