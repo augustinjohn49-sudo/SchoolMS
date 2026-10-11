@@ -60,3 +60,25 @@ export async function getStreamsByClass(classId) {
   const response = await api.get(`/streams/class/${classId}`);
   return response.data;
 }
+
+export async function getStudentEnrollments({
+  academicYearId,
+  classId,
+  streamId,
+  status = "ACTIVE",
+  page = 1,
+  limit = 100,
+}) {
+  const response = await api.get("/student-enrollments", {
+    params: {
+      academicYearId,
+      classId,
+      streamId: streamId || undefined,
+      status,
+      page,
+      limit,
+    },
+  });
+
+  return response.data;
+}

@@ -105,7 +105,11 @@ export async function createAttendanceController(req, res) {
       });
     }
 
-    if (error.code === "ATTENDANCE_EXISTS") {
+    if (
+      error.code === "ATTENDANCE_EXISTS" ||
+      (error.code === "23505" &&
+        error.constraint === "Attendance_studentId_date_key")
+    ) {
       return res.status(409).json({
         success: false,
         message:

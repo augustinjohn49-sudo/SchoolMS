@@ -9,6 +9,7 @@ import StudentDetails from "./pages/students/StudentDetails.jsx";
 import ParentGuardians from "./pages/guardians/ParentGuardians.jsx";
 import GuardianDetails from "./pages/guardians/GuardianDetails.jsx";
 import GuardianLinkedStudents from "./pages/guardians/GuardianLinkedStudents.jsx";
+import Attendance from "./pages/attendance/Attendance.jsx";
 
 function PlaceholderPage({ title }) {
   return (
@@ -61,10 +62,7 @@ function App() {
               element={<PlaceholderPage title="Timetable" />}
             />
 
-            <Route
-              path="/attendance"
-              element={<PlaceholderPage title="Attendance" />}
-            />
+            <Route path="/attendance" element={<Attendance />} />
 
             <Route
               path="/report-cards"

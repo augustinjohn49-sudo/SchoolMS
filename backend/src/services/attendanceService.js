@@ -360,13 +360,18 @@ export async function getStudentAttendanceByDateRange({
     FROM "Attendance" a
     INNER JOIN "Class" c
       ON c.id = a."classId"
+    INNER JOIN "AcademicYear" ay
+      ON ay.id = a."academicYearId"
+    INNER JOIN "Student" s
+      ON s.id = a."studentId"
     WHERE a."studentId" = $1
       AND a.date >= $2
-      AND a.date <= $3
-      AND c.id = a."classId"
+      AND a.date < $3 + INTERVAL '1 day'
+      AND ay."schoolId" = $4
+      AND s."schoolId" = $4
     ORDER BY a.date ASC
     `,
-    [studentId, attendanceStartDate, attendanceEndDate],
+    [studentId, attendanceStartDate, attendanceEndDate, schoolId],
   );
 
   return {
@@ -424,23 +429,29 @@ export async function getStudentAttendanceSummary({
     SELECT
       COUNT(*)::int AS "totalDays",
       COUNT(*) FILTER (
-        WHERE status = 'PRESENT'
+        WHERE a.status = 'PRESENT'
       )::int AS present,
       COUNT(*) FILTER (
-        WHERE status = 'ABSENT'
+        WHERE a.status = 'ABSENT'
       )::int AS absent,
       COUNT(*) FILTER (
-        WHERE status = 'LATE'
+        WHERE a.status = 'LATE'
       )::int AS late,
       COUNT(*) FILTER (
-        WHERE status = 'EXCUSED'
+        WHERE a.status = 'EXCUSED'
       )::int AS excused
-    FROM "Attendance"
-    WHERE "studentId" = $1
-      AND date >= $2
-      AND date <= $3
+    FROM "Attendance" a
+    INNER JOIN "AcademicYear" ay
+      ON ay.id = a."academicYearId"
+    INNER JOIN "Student" s
+      ON s.id = a."studentId"
+    WHERE a."studentId" = $1
+      AND a.date >= $2
+      AND a.date < $3 + INTERVAL '1 day'
+      AND ay."schoolId" = $4
+      AND s."schoolId" = $4
     `,
-    [studentId, attendanceStartDate, attendanceEndDate],
+    [studentId, attendanceStartDate, attendanceEndDate, schoolId],
   );
 
   return {
@@ -491,26 +502,38 @@ export async function updateAttendance({
 
   const result = await pool.query(
     `
-    UPDATE "Attendance"
+    UPDATE "Attendance" AS a
     SET
       status = $1,
       remarks = $2,
       "updatedAt" = $3
-    WHERE id = $4
+    FROM "Student" AS s
+    INNER JOIN "AcademicYear" AS ay
+      ON ay."schoolId" = s."schoolId"
+    WHERE a.id = $4
+      AND s.id = a."studentId"
+      AND ay.id = a."academicYearId"
+      AND s."schoolId" = $5
     RETURNING
-      id,
-      "studentId",
-      "academicYearId",
-      "termId",
-      "classId",
-      date,
-      status,
-      remarks,
-      "createdAt",
-      "updatedAt"
+      a.id,
+      a."studentId",
+      a."academicYearId",
+      a."termId",
+      a."classId",
+      a.date,
+      a.status,
+      a.remarks,
+      a."createdAt",
+      a."updatedAt"
     `,
-    [status, remarks ?? null, new Date(), attendanceId],
+    [status, remarks ?? null, new Date(), attendanceId, schoolId],
   );
+
+  if (result.rows.length === 0) {
+    const error = new Error("Attendance record not found.");
+    error.code = "ATTENDANCE_NOT_FOUND";
+    throw error;
+  }
 
   return result.rows[0];
 }
@@ -545,13 +568,25 @@ export async function deleteAttendance({ schoolId, attendanceId }) {
     throw error;
   }
 
-  await pool.query(
+  const deleteResult = await pool.query(
     `
-    DELETE FROM "Attendance"
-    WHERE id = $1
+    DELETE FROM "Attendance" AS a
+    USING "Student" AS s, "AcademicYear" AS ay
+    WHERE a.id = $1
+      AND s.id = a."studentId"
+      AND ay.id = a."academicYearId"
+      AND ay."schoolId" = s."schoolId"
+      AND s."schoolId" = $2
+    RETURNING a.id
     `,
-    [attendanceId],
+    [attendanceId, schoolId],
   );
+
+  if (deleteResult.rows.length === 0) {
+    const error = new Error("Attendance record not found.");
+    error.code = "ATTENDANCE_NOT_FOUND";
+    throw error;
+  }
 
   return attendance;
 }
