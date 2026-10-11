@@ -1,5 +1,6 @@
 import {
   createStudent,
+  admitStudent,
   getStudentsBySchool,
   getStudentById,
   updateStudent,
@@ -362,6 +363,96 @@ export async function getStudentEnrollmentHistoryController(req, res) {
       message: error.statusCode
         ? error.message
         : "Failed to retrieve student enrollment history.",
+    });
+  }
+}
+
+export async function admitStudentController(req, res) {
+  try {
+    const { student, guardian, relationship, isPrimary, isEmergencyContact } =
+      req.body;
+
+    // Validate the student details.
+    if (
+      !student ||
+      !student.admissionNumber?.trim() ||
+      !student.firstName?.trim() ||
+      !student.lastName?.trim() ||
+      !student.gender
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Student admission number, first name, last name, and gender are required.",
+      });
+    }
+
+    // Validate the parent or guardian details.
+    if (
+      !guardian ||
+      !guardian.firstName?.trim() ||
+      !guardian.lastName?.trim() ||
+      !guardian.phone?.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Guardian first name, last name, and phone number are required.",
+      });
+    }
+
+    const allowedGenders = ["MALE", "FEMALE"];
+
+    if (!allowedGenders.includes(student.gender)) {
+      return res.status(400).json({
+        success: false,
+        message: "Gender must be MALE or FEMALE.",
+      });
+    }
+
+    const schoolId = req.user.schoolId;
+
+    if (!schoolId) {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is not associated with a school.",
+      });
+    }
+
+    const result = await admitStudent({
+      schoolId,
+      student: {
+        ...student,
+        admissionNumber: student.admissionNumber.trim(),
+        firstName: student.firstName.trim(),
+        middleName: student.middleName?.trim() || null,
+        lastName: student.lastName.trim(),
+      },
+      guardian: {
+        ...guardian,
+        firstName: guardian.firstName.trim(),
+        middleName: guardian.middleName?.trim() || null,
+        lastName: guardian.lastName.trim(),
+        phone: guardian.phone.trim(),
+      },
+      relationship,
+      isPrimary: isPrimary ?? true,
+      isEmergencyContact: isEmergencyContact ?? true,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Student admitted successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Student admission error:", error);
+
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.statusCode
+        ? error.message
+        : "Failed to admit student and register guardian.",
     });
   }
 }

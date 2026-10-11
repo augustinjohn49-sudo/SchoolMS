@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import {
   getStudents,
-  createStudent,
+  admitStudent,
   updateStudent,
   deleteStudent,
 } from "../../services/studentService.js";
@@ -32,6 +32,7 @@ export default function Students() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   const [formData, setFormData] = useState({
+    // Student details
     admissionNumber: "",
     firstName: "",
     middleName: "",
@@ -41,6 +42,21 @@ export default function Students() {
     phone: "",
     email: "",
     address: "",
+
+    // Parent/guardian details
+    guardianFirstName: "",
+    guardianMiddleName: "",
+    guardianLastName: "",
+    guardianPhone: "",
+    guardianAlternatePhone: "",
+    guardianEmail: "",
+    guardianAddress: "",
+    guardianOccupation: "",
+
+    // Relationship to the student
+    relationship: "",
+    isPrimary: true,
+    isEmergencyContact: true,
   });
 
   const [formLoading, setFormLoading] = useState(false);
@@ -187,6 +203,7 @@ export default function Students() {
 
   function resetStudentForm() {
     setFormData({
+      // Student details
       admissionNumber: "",
       firstName: "",
       middleName: "",
@@ -196,6 +213,21 @@ export default function Students() {
       phone: "",
       email: "",
       address: "",
+
+      // Parent/guardian details
+      guardianFirstName: "",
+      guardianMiddleName: "",
+      guardianLastName: "",
+      guardianPhone: "",
+      guardianAlternatePhone: "",
+      guardianEmail: "",
+      guardianAddress: "",
+      guardianOccupation: "",
+
+      // Relationship to the student
+      relationship: "",
+      isPrimary: true,
+      isEmergencyContact: true,
     });
 
     setFormError("");
@@ -223,18 +255,35 @@ export default function Students() {
       setFormError("");
 
       const payload = {
-        admissionNumber: formData.admissionNumber.trim(),
-        firstName: formData.firstName.trim(),
-        middleName: formData.middleName.trim() || undefined,
-        lastName: formData.lastName.trim(),
-        dateOfBirth: formData.dateOfBirth || undefined,
-        gender: formData.gender,
-        phone: formData.phone.trim() || undefined,
-        email: formData.email.trim() || undefined,
-        address: formData.address.trim() || undefined,
+        student: {
+          admissionNumber: formData.admissionNumber.trim(),
+          firstName: formData.firstName.trim(),
+          middleName: formData.middleName.trim() || undefined,
+          lastName: formData.lastName.trim(),
+          dateOfBirth: formData.dateOfBirth || undefined,
+          gender: formData.gender,
+          phone: formData.phone.trim() || undefined,
+          email: formData.email.trim() || undefined,
+          address: formData.address.trim() || undefined,
+        },
+
+        guardian: {
+          firstName: formData.guardianFirstName.trim(),
+          middleName: formData.guardianMiddleName.trim() || undefined,
+          lastName: formData.guardianLastName.trim(),
+          phone: formData.guardianPhone.trim(),
+          alternatePhone: formData.guardianAlternatePhone.trim() || undefined,
+          email: formData.guardianEmail.trim() || undefined,
+          address: formData.guardianAddress.trim() || undefined,
+          occupation: formData.guardianOccupation.trim() || undefined,
+        },
+
+        relationship: formData.relationship,
+        isPrimary: formData.isPrimary,
+        isEmergencyContact: formData.isEmergencyContact,
       };
 
-      await createStudent(payload);
+      await admitStudent(payload);
 
       setShowAddForm(false);
       resetStudentForm();
@@ -246,9 +295,11 @@ export default function Students() {
 
       await loadStudents();
     } catch (err) {
-      console.error("Failed to create student:", err);
+      console.error("Failed to admit student:", err);
 
-      setFormError(err.response?.data?.message || "Unable to create student.");
+      setFormError(
+        err.response?.data?.message || "Unable to complete student admission.",
+      );
     } finally {
       setFormLoading(false);
     }
@@ -422,8 +473,11 @@ export default function Students() {
               <div className="student-modal">
                 <div className="student-modal-header">
                   <div>
-                    <h2>Add Student</h2>
-                    <p>Enter the student's basic information.</p>
+                    <h2>Admit Student</h2>
+                    <p>
+                      Enter the student's details and their parent or guardian
+                      information.
+                    </p>
                   </div>
 
                   <button
@@ -557,6 +611,155 @@ export default function Students() {
                         value={formData.address}
                         onChange={handleFormChange}
                       />
+                    </div>
+
+                    <div className="student-form-field-full">
+                      <h3>Parent / Guardian Information</h3>
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianFirstName">First Name *</label>
+                      <input
+                        id="guardianFirstName"
+                        name="guardianFirstName"
+                        value={formData.guardianFirstName}
+                        onChange={handleFormChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianMiddleName">Middle Name</label>
+                      <input
+                        id="guardianMiddleName"
+                        name="guardianMiddleName"
+                        value={formData.guardianMiddleName}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianLastName">Last Name *</label>
+                      <input
+                        id="guardianLastName"
+                        name="guardianLastName"
+                        value={formData.guardianLastName}
+                        onChange={handleFormChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianPhone">Phone Number *</label>
+                      <input
+                        id="guardianPhone"
+                        name="guardianPhone"
+                        type="tel"
+                        value={formData.guardianPhone}
+                        onChange={handleFormChange}
+                        required
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianAlternatePhone">
+                        Alternative Phone
+                      </label>
+                      <input
+                        id="guardianAlternatePhone"
+                        name="guardianAlternatePhone"
+                        type="tel"
+                        value={formData.guardianAlternatePhone}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianEmail">Email</label>
+                      <input
+                        id="guardianEmail"
+                        name="guardianEmail"
+                        type="email"
+                        value={formData.guardianEmail}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianAddress">Address</label>
+                      <input
+                        id="guardianAddress"
+                        name="guardianAddress"
+                        value={formData.guardianAddress}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="guardianOccupation">Occupation</label>
+                      <input
+                        id="guardianOccupation"
+                        name="guardianOccupation"
+                        value={formData.guardianOccupation}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+
+                    <div className="student-form-field">
+                      <label htmlFor="relationship">
+                        Relationship to Student *
+                      </label>
+                      <select
+                        id="relationship"
+                        name="relationship"
+                        value={formData.relationship}
+                        onChange={handleFormChange}
+                        required
+                      >
+                        <option value="">Select relationship</option>
+                        <option value="FATHER">Father</option>
+                        <option value="MOTHER">Mother</option>
+                        <option value="GUARDIAN">Guardian</option>
+                        <option value="GRANDPARENT">Grandparent</option>
+                        <option value="SIBLING">Sibling</option>
+                        <option value="UNCLE">Uncle</option>
+                        <option value="AUNT">Aunt</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+
+                    <div className="student-form-field-full">
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="isPrimary"
+                          checked={formData.isPrimary}
+                          onChange={(event) =>
+                            setFormData((current) => ({
+                              ...current,
+                              isPrimary: event.target.checked,
+                            }))
+                          }
+                        />
+                        Primary guardian
+                      </label>
+                    </div>
+
+                    <div className="student-form-field-full">
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="isEmergencyContact"
+                          checked={formData.isEmergencyContact}
+                          onChange={(event) =>
+                            setFormData((current) => ({
+                              ...current,
+                              isEmergencyContact: event.target.checked,
+                            }))
+                          }
+                        />
+                        Emergency contact
+                      </label>
                     </div>
                   </div>
 

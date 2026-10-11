@@ -1,6 +1,7 @@
 import express from "express";
 
 import {
+  admitStudentController,
   createStudentController,
   getStudentsController,
   getStudentByIdController,
@@ -44,6 +45,13 @@ router.get(
   authenticateToken,
   authorizeRoles("SCHOOL_ADMIN"),
   getStudentByIdController,
+);
+
+router.post(
+  "/admit",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  admitStudentController,
 );
 
 router.patch(

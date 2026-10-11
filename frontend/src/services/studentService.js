@@ -44,3 +44,8 @@ export async function deleteStudent(studentId) {
   const response = await api.delete(`/students/${studentId}`);
   return response.data;
 }
+
+export async function admitStudent(admissionData) {
+  const response = await api.post("/students/admit", admissionData);
+  return response.data;
+}

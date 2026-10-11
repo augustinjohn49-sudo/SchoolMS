@@ -404,3 +404,235 @@ export async function bulkUpdateStudentStatus({
     updatedStudentIds: result.rows.map((student) => student.id),
   };
 }
+
+export async function admitStudent({
+  schoolId,
+  student,
+  guardian,
+  relationship,
+  isPrimary = true,
+  isEmergencyContact = true,
+}) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // Verify that the school exists.
+    const schoolResult = await client.query(
+      `SELECT id
+       FROM "School"
+       WHERE id = $1
+       LIMIT 1`,
+      [schoolId],
+    );
+
+    if (schoolResult.rows.length === 0) {
+      const error = new Error("School not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Check for a duplicate student admission number.
+    const duplicateStudent = await client.query(
+      `SELECT id
+       FROM "Student"
+       WHERE "schoolId" = $1
+         AND "admissionNumber" = $2
+       LIMIT 1`,
+      [schoolId, student.admissionNumber],
+    );
+
+    if (duplicateStudent.rows.length > 0) {
+      const error = new Error(
+        "A student with this admission number already exists in this school.",
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    // Prevent accidental duplicate guardians within the same school.
+    const duplicateGuardian = await client.query(
+      `SELECT id
+       FROM "ParentGuardian"
+       WHERE "schoolId" = $1
+         AND phone = $2
+       LIMIT 1`,
+      [schoolId, guardian.phone],
+    );
+
+    if (duplicateGuardian.rows.length > 0) {
+      const error = new Error(
+        "A parent or guardian with this phone number already exists in this school. Find the existing guardian and link them to this student instead.",
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const validRelationships = [
+      "FATHER",
+      "MOTHER",
+      "GUARDIAN",
+      "GRANDPARENT",
+      "SIBLING",
+      "UNCLE",
+      "AUNT",
+      "OTHER",
+    ];
+
+    if (!validRelationships.includes(relationship)) {
+      const error = new Error("Invalid guardian relationship.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Create the student.
+    const studentId = randomUUID();
+
+    const studentResult = await client.query(
+      `INSERT INTO "Student" (
+        id,
+        "schoolId",
+        "admissionNumber",
+        "firstName",
+        "middleName",
+        "lastName",
+        "dateOfBirth",
+        gender,
+        phone,
+        email,
+        address,
+        "updatedAt"
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()
+      )
+      RETURNING
+        id,
+        "schoolId",
+        "admissionNumber",
+        "firstName",
+        "middleName",
+        "lastName",
+        "dateOfBirth",
+        gender,
+        phone,
+        email,
+        address,
+        status,
+        "createdAt",
+        "updatedAt"`,
+      [
+        studentId,
+        schoolId,
+        student.admissionNumber,
+        student.firstName,
+        student.middleName || null,
+        student.lastName,
+        student.dateOfBirth || null,
+        student.gender,
+        student.phone || null,
+        student.email || null,
+        student.address || null,
+      ],
+    );
+
+    // Create the parent or guardian.
+    const guardianId = randomUUID();
+
+    const guardianResult = await client.query(
+      `INSERT INTO "ParentGuardian" (
+        id,
+        "schoolId",
+        "userId",
+        "firstName",
+        "middleName",
+        "lastName",
+        phone,
+        "alternatePhone",
+        email,
+        address,
+        occupation,
+        status,
+        "updatedAt"
+      )
+      VALUES (
+        $1, $2, NULL, $3, $4, $5, $6, $7, $8, $9, $10,
+        'ACTIVE', NOW()
+      )
+      RETURNING
+        id,
+        "schoolId",
+        "firstName",
+        "middleName",
+        "lastName",
+        phone,
+        "alternatePhone",
+        email,
+        address,
+        occupation,
+        status,
+        "createdAt",
+        "updatedAt"`,
+      [
+        guardianId,
+        schoolId,
+        guardian.firstName,
+        guardian.middleName || null,
+        guardian.lastName,
+        guardian.phone,
+        guardian.alternatePhone || null,
+        guardian.email || null,
+        guardian.address || null,
+        guardian.occupation || null,
+      ],
+    );
+
+    // Link the guardian to the student.
+    await client.query(
+      `INSERT INTO "StudentGuardian" (
+        id,
+        "studentId",
+        "parentGuardianId",
+        relationship,
+        "isPrimary",
+        "isEmergencyContact",
+        "updatedAt"
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+      [
+        randomUUID(),
+        studentId,
+        guardianId,
+        relationship,
+        isPrimary,
+        isEmergencyContact,
+      ],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      student: studentResult.rows[0],
+      guardian: guardianResult.rows[0],
+      relationship,
+      isPrimary,
+      isEmergencyContact,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    // Handle database uniqueness conflicts safely.
+    if (error.code === "23505") {
+      const conflictError = new Error(
+        "A record with the supplied unique details already exists.",
+      );
+      conflictError.statusCode = 409;
+      throw conflictError;
+    }
+
+    throw error;
+  } finally {
+    client.release();
+  }
+}
