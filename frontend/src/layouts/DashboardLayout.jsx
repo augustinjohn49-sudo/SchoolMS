@@ -52,6 +52,11 @@ const navigationItems = [
     icon: ClipboardCheck,
   },
   {
+    label: "Attendance Reports",
+    path: "/attendance/reports",
+    icon: FileText,
+  },
+  {
     label: "Report Cards",
     path: "/report-cards",
     icon: FileText,
