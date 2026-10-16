@@ -8,6 +8,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   FileText,
+  AlertTriangle,
   CreditCard,
   MessageSquare,
   Bell,
@@ -55,6 +56,11 @@ const navigationItems = [
     label: "Attendance Reports",
     path: "/attendance/reports",
     icon: FileText,
+  },
+  {
+    label: "Low Attendance Alerts",
+    path: "/attendance/low-attendance-alerts",
+    icon: AlertTriangle,
   },
   {
     label: "Report Cards",

@@ -11,6 +11,7 @@ import GuardianDetails from "./pages/guardians/GuardianDetails.jsx";
 import GuardianLinkedStudents from "./pages/guardians/GuardianLinkedStudents.jsx";
 import Attendance from "./pages/attendance/Attendance.jsx";
 import AttendanceReports from "./pages/attendance/AttendanceReports.jsx";
+import LowAttendanceAlerts from "./pages/attendance/LowAttendanceAlerts.jsx";
 import ReportCards from "./pages/reportCards/ReportCards.jsx";
 import ExamMarksEntry from "./pages/exams/ExamMarksEntry.jsx";
 
@@ -68,6 +69,11 @@ function App() {
             <Route path="/attendance" element={<Attendance />} />
 
             <Route path="/attendance/reports" element={<AttendanceReports />} />
+
+            <Route
+              path="/attendance/low-attendance-alerts"
+              element={<LowAttendanceAlerts />}
+            />
 
             <Route path="/report-cards" element={<ReportCards />} />
 

@@ -23,11 +23,7 @@ export async function updateAttendance(attendanceId, attendanceData) {
   return response.data;
 }
 
-export async function getStudentAttendance(
-  studentId,
-  startDate,
-  endDate,
-) {
+export async function getStudentAttendance(studentId, startDate, endDate) {
   const response = await api.get(`/attendance/student/${studentId}`, {
     params: { startDate, endDate },
   });
@@ -40,10 +36,30 @@ export async function getStudentAttendanceSummary(
   startDate,
   endDate,
 ) {
+  const response = await api.get(`/attendance/student/${studentId}/summary`, {
+    params: { startDate, endDate },
+  });
+
+  return response.data;
+}
+
+export async function getLowAttendanceAlerts({
+  dateFrom,
+  dateTo,
+  threshold = 75,
+  academicYearId,
+  classId,
+}) {
   const response = await api.get(
-    `/attendance/student/${studentId}/summary`,
+    "/school-reports/attendance/low-attendance-alerts",
     {
-      params: { startDate, endDate },
+      params: {
+        dateFrom,
+        dateTo,
+        threshold,
+        ...(academicYearId ? { academicYearId } : {}),
+        ...(classId ? { classId } : {}),
+      },
     },
   );
 
