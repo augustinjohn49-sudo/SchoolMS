@@ -13,6 +13,7 @@ import { getDashboardData } from "../../services/dashboardService.js";
 import DashboardStats from "./components/DashboardStats.jsx";
 import QuickActions from "./components/QuickActions.jsx";
 import SystemOverview from "./components/SystemOverview.jsx";
+import AcademicPerformance from "./components/AcademicPerformance.jsx";
 import "./Dashboard.css";
 
 export default function Dashboard() {
@@ -151,6 +152,10 @@ export default function Dashboard() {
       )}
 
       <DashboardStats stats={stats} />
+
+      {!loading && !error && (
+        <AcademicPerformance data={dashboardData.academicPerformance} />
+      )}
 
       <QuickActions actions={quickActions} />
 

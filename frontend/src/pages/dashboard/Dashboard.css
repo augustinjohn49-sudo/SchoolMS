@@ -459,3 +459,192 @@
     transform: none;
   }
 }
+
+/* ========================================
+   ACADEMIC PERFORMANCE
+======================================== */
+
+.academic-performance {
+  margin-top: 8px;
+}
+
+.academic-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.academic-metric-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 20px 17px;
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 15px;
+  box-shadow: 0 4px 18px rgb(31 48 79 / 3%);
+}
+
+.academic-metric-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  color: #315ee7;
+  background: #edf2ff;
+  border-radius: 12px;
+}
+
+.academic-metric-card > div:last-child {
+  min-width: 0;
+}
+
+.academic-metric-card p {
+  margin: 0 0 7px;
+  color: var(--dashboard-muted);
+  font-size: 0.77rem;
+  line-height: 1.5;
+}
+
+.academic-metric-card strong {
+  color: var(--dashboard-heading);
+  font-size: clamp(1.25rem, 1.8vw, 1.75rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+
+.academic-grade-card {
+  padding: 23px;
+  background: var(--dashboard-surface);
+  border: 1px solid var(--dashboard-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgb(31 48 79 / 3%);
+}
+
+.academic-grade-header {
+  margin-bottom: 22px;
+}
+
+.academic-grade-header h3 {
+  margin: 0;
+  color: var(--dashboard-heading);
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+.academic-grade-header p {
+  margin: 7px 0 0;
+  color: var(--dashboard-muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.academic-grade-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px 28px;
+}
+
+.academic-grade-row {
+  min-width: 0;
+}
+
+.academic-grade-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+  color: #475569;
+  font-size: 0.84rem;
+}
+
+.academic-grade-label span {
+  overflow-wrap: anywhere;
+}
+
+.academic-grade-label strong {
+  color: var(--dashboard-heading);
+  font-weight: 700;
+}
+
+.academic-grade-track {
+  width: 100%;
+  height: 9px;
+  overflow: hidden;
+  background: #edf1f7;
+  border-radius: 999px;
+}
+
+.academic-grade-fill {
+  height: 100%;
+  background: #5478e8;
+  border-radius: inherit;
+  transition: width 250ms ease;
+}
+
+.academic-no-grades {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+.academic-empty-state {
+  padding: 36px 22px;
+  text-align: center;
+  background: var(--dashboard-surface);
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+}
+
+.academic-empty-state > svg {
+  color: #718096;
+}
+
+.academic-empty-state h3 {
+  margin: 13px 0 8px;
+  color: var(--dashboard-heading);
+  font-size: 1rem;
+}
+
+.academic-empty-state p {
+  max-width: 480px;
+  margin: 0 auto;
+  color: var(--dashboard-muted);
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 1200px) {
+  .academic-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .academic-metrics,
+  .academic-grade-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .academic-metric-card {
+    padding: 17px 15px;
+  }
+
+  .academic-grade-card {
+    padding: 18px 15px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .academic-grade-fill {
+    transition: none;
+  }
+}
