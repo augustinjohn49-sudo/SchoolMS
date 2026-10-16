@@ -16,6 +16,7 @@ export const createNotification = async ({
   message,
   type,
   recipientUserIds,
+  deduplicationKey = null,
 }) => {
   if (!schoolId) {
     const error = new Error("School is required");
@@ -82,29 +83,45 @@ export const createNotification = async ({
           title,
           message,
           type,
+          "deduplicationKey",
           "createdAt",
           "updatedAt"
         )
         VALUES (
-          $1,
-          $2,
-          $3,
-          $4,
-          $5,
+          $1, $2, $3, $4, $5, $6,
           CURRENT_TIMESTAMP,
           CURRENT_TIMESTAMP
         )
+        ON CONFLICT ("deduplicationKey")
+        DO NOTHING
         RETURNING
           id,
           "schoolId" AS "schoolId",
           title,
           message,
           type,
+          "deduplicationKey" AS "deduplicationKey",
           "createdAt" AS "createdAt",
           "updatedAt" AS "updatedAt"
       `,
-      [notificationId, schoolId, title.trim(), message.trim(), type],
+      [
+        notificationId,
+        schoolId,
+        title.trim(),
+        message.trim(),
+        type,
+        deduplicationKey,
+      ],
     );
+
+    if (notificationResult.rows.length === 0) {
+      await client.query("ROLLBACK");
+
+      return {
+        duplicate: true,
+        recipientCount: 0,
+      };
+    }
 
     for (const user of usersResult.rows) {
       await client.query(

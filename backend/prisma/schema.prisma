@@ -563,6 +563,7 @@ model Notification {
   title     String
   message   String
   type      NotificationType
+  deduplicationKey String? @unique
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 

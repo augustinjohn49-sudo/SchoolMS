@@ -9,6 +9,7 @@ import {
 } from "../middleware/authMiddleware.js";
 
 import { getLowAttendanceAlertsController } from "../controllers/attendanceAlertController.js";
+import { generateLowAttendanceNotificationsController } from "../controllers/attendanceNotificationController.js";
 
 const router = express.Router();
 
@@ -26,6 +27,14 @@ router.get(
   authorizeRoles("SCHOOL_ADMIN"),
   requireSchoolAccess,
   getLowAttendanceAlertsController,
+);
+
+router.post(
+  "/attendance/low-attendance-alerts/notifications",
+  authenticateToken,
+  authorizeRoles("SCHOOL_ADMIN"),
+  requireSchoolAccess,
+  generateLowAttendanceNotificationsController,
 );
 
 export default router;

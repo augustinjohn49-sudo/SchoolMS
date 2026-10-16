@@ -1,4 +1,7 @@
 import { Outlet, NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+import { useEffect, useState } from "react";
+import { getUnreadNotificationCount } from "../services/notificationService.js";
 import {
   LayoutDashboard,
   School,
@@ -14,7 +17,6 @@ import {
   Bell,
   LogOut,
 } from "lucide-react";
-import { useAuth } from "../context/AuthContext.jsx";
 
 const navigationItems = [
   {
@@ -87,6 +89,35 @@ const navigationItems = [
 export default function DashboardLayout() {
   const { user, logout } = useAuth();
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadUnreadCount() {
+      try {
+        const result = await getUnreadNotificationCount();
+
+        const count = Number(result.unreadCount ?? result.count ?? 0);
+
+        if (active) {
+          setUnreadCount(Number.isFinite(count) ? count : 0);
+        }
+      } catch (error) {
+        console.error("Failed to load unread notification count:", error);
+      }
+    }
+
+    loadUnreadCount();
+
+    const intervalId = window.setInterval(loadUnreadCount, 30000);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   return (
     <div className="dashboard-layout">
       <aside className="sidebar">
@@ -129,6 +160,20 @@ export default function DashboardLayout() {
             <h2>School Management System</h2>
             <p>Manage your school from one place.</p>
           </div>
+
+          <NavLink
+            to="/notifications"
+            className="header-notification-link"
+            aria-label={`Notifications, ${unreadCount} unread`}
+          >
+            <Bell size={22} />
+
+            {unreadCount > 0 && (
+              <span className="header-notification-badge">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </NavLink>
 
           <div className="user-profile">
             <div className="user-avatar">

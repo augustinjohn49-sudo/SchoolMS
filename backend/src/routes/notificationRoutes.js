@@ -26,35 +26,35 @@ router.post(
 router.get(
   "/",
   authenticateToken,
-  authorizeRoles("TEACHER", "PARENT", "STUDENT"),
+  authorizeRoles("SCHOOL_ADMIN", "TEACHER", "PARENT", "STUDENT"),
   getNotificationsController,
 );
 
 router.get(
   "/unread-count",
   authenticateToken,
-  authorizeRoles("TEACHER", "PARENT", "STUDENT"),
+  authorizeRoles("SCHOOL_ADMIN", "TEACHER", "PARENT", "STUDENT"),
   getUnreadNotificationCountController,
 );
 
 router.patch(
   "/read-all",
   authenticateToken,
-  authorizeRoles("TEACHER", "PARENT", "STUDENT"),
+  authorizeRoles("SCHOOL_ADMIN", "TEACHER", "PARENT", "STUDENT"),
   markAllNotificationsAsReadController,
 );
 
 router.get(
   "/:notificationId",
   authenticateToken,
-  authorizeRoles("TEACHER", "PARENT", "STUDENT"),
+  authorizeRoles("SCHOOL_ADMIN", "TEACHER", "PARENT", "STUDENT"),
   getNotificationByIdController,
 );
 
 router.patch(
   "/:notificationId/read",
   authenticateToken,
-  authorizeRoles("TEACHER", "PARENT", "STUDENT"),
+  authorizeRoles("SCHOOL_ADMIN", "TEACHER", "PARENT", "STUDENT"),
   markNotificationAsReadController,
 );
 

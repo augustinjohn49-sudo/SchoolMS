@@ -14,6 +14,7 @@ import AttendanceReports from "./pages/attendance/AttendanceReports.jsx";
 import LowAttendanceAlerts from "./pages/attendance/LowAttendanceAlerts.jsx";
 import ReportCards from "./pages/reportCards/ReportCards.jsx";
 import ExamMarksEntry from "./pages/exams/ExamMarksEntry.jsx";
+import Notifications from "./pages/notifications/Notifications.jsx";
 
 function PlaceholderPage({ title }) {
   return (
@@ -89,10 +90,7 @@ function App() {
               element={<PlaceholderPage title="Messages" />}
             />
 
-            <Route
-              path="/notifications"
-              element={<PlaceholderPage title="Notifications" />}
-            />
+            <Route path="/notifications" element={<Notifications />} />
           </Route>
         </Route>
 
