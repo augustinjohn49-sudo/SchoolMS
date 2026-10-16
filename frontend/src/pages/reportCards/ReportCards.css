@@ -1,0 +1,391 @@
+.report-cards-page {
+  padding: 24px;
+  max-width: 1500px;
+  margin: 0 auto;
+  color: #1f2937;
+}
+
+.report-cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.report-cards-header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.report-cards-header p,
+.rc-muted {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.report-cards-header-actions,
+.rc-form-actions,
+.rc-workflow-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rc-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+}
+
+.rc-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.rc-section-heading h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+}
+
+.rc-section-heading .rc-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 13px;
+}
+
+.rc-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.rc-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rc-button-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.rc-button-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.rc-button-secondary {
+  background: #fff;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.rc-button-secondary:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.rc-button-small {
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+.rc-filter-grid,
+.rc-form-grid,
+.rc-details-grid,
+.rc-comments-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.rc-filter-grid label,
+.rc-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rc-filter-grid input,
+.rc-filter-grid select,
+.rc-form-grid input,
+.rc-form-grid select,
+.rc-form-grid textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+  font-size: 14px;
+}
+
+.rc-filter-grid input:focus,
+.rc-filter-grid select:focus,
+.rc-form-grid input:focus,
+.rc-form-grid select:focus,
+.rc-form-grid textarea:focus {
+  outline: 2px solid #bfdbfe;
+  border-color: #3b82f6;
+}
+
+.rc-form-grid {
+  margin-top: 20px;
+}
+
+.rc-field-full {
+  grid-column: 1 / -1;
+}
+
+.rc-form-actions {
+  justify-content: flex-end;
+}
+
+.rc-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 16px;
+  margin-bottom: 18px;
+  border: 1px solid;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.rc-alert-error {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.rc-alert-success {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.rc-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.rc-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.rc-table th,
+.rc-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.rc-table th {
+  background: #f9fafb;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+}
+
+.rc-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.rc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 150px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.rc-empty-state p {
+  margin: 0;
+}
+
+.rc-status {
+  margin-left: auto;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rc-status-draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.rc-status-approved {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.rc-status-published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.rc-details-panel h3 {
+  margin: 24px 0 14px;
+  font-size: 16px;
+}
+
+.rc-details-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 24px;
+}
+
+.rc-details-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9fafb;
+  overflow-wrap: anywhere;
+}
+
+.rc-details-grid span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.rc-details-grid strong {
+  font-size: 14px;
+}
+
+.rc-attendance-summary {
+  margin-top: 22px;
+}
+
+.rc-comments-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 22px;
+}
+
+.rc-comments-grid > div {
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.rc-comments-grid h3 {
+  margin-top: 0;
+}
+
+.rc-comments-grid p {
+  margin-bottom: 0;
+  color: #4b5563;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.rc-workflow-actions {
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.rc-close-button {
+  margin-left: 0;
+}
+
+.rc-spin {
+  animation: rc-spin-animation 1s linear infinite;
+}
+
+@keyframes rc-spin-animation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .rc-filter-grid,
+  .rc-form-grid,
+  .rc-details-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .report-cards-page {
+    padding: 14px;
+  }
+
+  .report-cards-header h1 {
+    font-size: 23px;
+  }
+
+  .report-cards-header-actions {
+    width: 100%;
+  }
+
+  .report-cards-header-actions .rc-button {
+    flex: 1;
+  }
+
+  .rc-panel {
+    padding: 15px;
+  }
+
+  .rc-filter-grid,
+  .rc-form-grid,
+  .rc-details-grid,
+  .rc-comments-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rc-section-heading {
+    flex-wrap: wrap;
+  }
+
+  .rc-table th,
+  .rc-table td {
+    padding: 10px;
+  }
+}

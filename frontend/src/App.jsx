@@ -11,6 +11,8 @@ import GuardianDetails from "./pages/guardians/GuardianDetails.jsx";
 import GuardianLinkedStudents from "./pages/guardians/GuardianLinkedStudents.jsx";
 import Attendance from "./pages/attendance/Attendance.jsx";
 import AttendanceReports from "./pages/attendance/AttendanceReports.jsx";
+import ReportCards from "./pages/reportCards/ReportCards.jsx";
+import ExamMarksEntry from "./pages/exams/ExamMarksEntry.jsx";
 
 function PlaceholderPage({ title }) {
   return (
@@ -67,10 +69,9 @@ function App() {
 
             <Route path="/attendance/reports" element={<AttendanceReports />} />
 
-            <Route
-              path="/report-cards"
-              element={<PlaceholderPage title="Report Cards" />}
-            />
+            <Route path="/report-cards" element={<ReportCards />} />
+
+            <Route path="/exam-marks" element={<ExamMarksEntry />} />
 
             <Route
               path="/finance"
