@@ -39,6 +39,7 @@ import attendanceReportRoutes from "./routes/attendanceReportRoutes.js";
 import studentPerformanceReportRoutes from "./routes/studentPerformanceReportRoutes.js";
 import staffReportRoutes from "./routes/staffReportRoutes.js";
 import subjectReportRoutes from "./routes/subjectReportRoutes.js";
+import { startAttendanceNotificationScheduler } from "./services/attendanceNotificationScheduler.js";
 
 const app = express();
 
@@ -106,6 +107,9 @@ async function startServer() {
   try {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+
+      // Disabled by default until the scheduler is explicitly enabled.
+      startAttendanceNotificationScheduler();
     });
   } catch (error) {
     console.error("Failed to start server:");
@@ -114,4 +118,5 @@ async function startServer() {
     process.exit(1);
   }
 }
+
 startServer();
